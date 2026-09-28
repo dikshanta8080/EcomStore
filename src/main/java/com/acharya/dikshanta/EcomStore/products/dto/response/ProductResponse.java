@@ -14,5 +14,6 @@ public record ProductResponse(
         Long categoryId,
         String categoryName
 
+
 ) {
 }
