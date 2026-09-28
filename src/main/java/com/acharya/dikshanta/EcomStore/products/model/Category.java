@@ -27,4 +27,18 @@ public class Category extends BaseEntity {
 
     @OneToMany(mappedBy = "category", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<Product> products = new ArrayList<>();
+
+    public void addProduct(Product product) {
+        if (product != null) {
+            products.add(product);
+            product.setCategory(this);
+        }
+    }
+
+    public void removeProduct(Product product) {
+        if (product != null) {
+            products.remove(product);
+            product.setCategory(null);
+        }
+    }
 }
