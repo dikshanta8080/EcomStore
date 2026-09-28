@@ -10,6 +10,7 @@ import org.mapstruct.Mapping;
 public interface ProductMapper {
     @Mapping(target = "categoryName", source = "category.name")
     @Mapping(target = "categoryId", source = "category.id")
+    @Mapping(target = "stock", source = "inventory.stock", defaultValue = "0L")
     ProductResponse toProductResponse(Product product);
 
     @Mapping(target = "category", ignore = true)

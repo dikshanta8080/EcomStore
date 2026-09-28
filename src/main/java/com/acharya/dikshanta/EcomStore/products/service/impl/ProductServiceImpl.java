@@ -2,6 +2,8 @@ package com.acharya.dikshanta.EcomStore.products.service.impl;
 
 import com.acharya.dikshanta.EcomStore.common.dto.response.PagedResponse;
 import com.acharya.dikshanta.EcomStore.common.exceptions.ResourceNotFoundException;
+import com.acharya.dikshanta.EcomStore.inventory.model.Inventory;
+import com.acharya.dikshanta.EcomStore.inventory.service.InventoryService;
 import com.acharya.dikshanta.EcomStore.products.dto.request.ProductCreateRequest;
 import com.acharya.dikshanta.EcomStore.products.dto.request.ProductUpdateRequest;
 import com.acharya.dikshanta.EcomStore.products.dto.response.ProductResponse;
@@ -23,6 +25,7 @@ public class ProductServiceImpl implements ProductService {
     private final ProductRepository productRepository;
     private final ProductMapper productMapper;
     private final CategoryRepository categoryRepository;
+    private final InventoryService inventoryService;
 
     @Transactional
     @Override
@@ -32,6 +35,8 @@ public class ProductServiceImpl implements ProductService {
         Product product = productMapper.toProduct(productCreateRequest);
         product.setCategory(category);
         productRepository.save(product);
+        Inventory inventory = inventoryService.createInventory(product);
+        product.setInventory(inventory);
         return productMapper.toProductResponse(product);
     }
 

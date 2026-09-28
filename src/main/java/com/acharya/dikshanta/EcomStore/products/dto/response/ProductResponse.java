@@ -12,7 +12,8 @@ public record ProductResponse(
         String description,
         BigDecimal price,
         Long categoryId,
-        String categoryName
+        String categoryName,
+        Long stock
 
 
 ) {
