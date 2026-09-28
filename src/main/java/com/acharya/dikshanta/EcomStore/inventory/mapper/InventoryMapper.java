@@ -5,6 +5,8 @@ import com.acharya.dikshanta.EcomStore.inventory.dto.response.InventoryMovementR
 import com.acharya.dikshanta.EcomStore.inventory.model.InventoryMovement;
 import org.springframework.stereotype.Component;
 
+import java.time.LocalDateTime;
+
 @Component
 public class InventoryMapper {
     public InventoryMovement toEntity(InventoryMovementRequest request) {
@@ -26,6 +28,7 @@ public class InventoryMapper {
                 .categoryName(inventoryMovement.getInventory().getProduct().getCategory().getName())
                 .unitPrice(inventoryMovement.getInventory().getProduct().getPrice())
                 .totalAmount(inventoryMovement.getTotalAmount())
+                .movementDate(inventoryMovement.getCreatedAt() != null ? inventoryMovement.getCreatedAt() : LocalDateTime.now())
                 .build();
     }
 }

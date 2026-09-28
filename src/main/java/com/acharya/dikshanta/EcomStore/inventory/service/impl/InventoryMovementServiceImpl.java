@@ -13,6 +13,7 @@ import com.acharya.dikshanta.EcomStore.inventory.repository.InventoryMovementRep
 import com.acharya.dikshanta.EcomStore.inventory.repository.InventoryRepository;
 import com.acharya.dikshanta.EcomStore.inventory.service.InventoryMovementService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -41,28 +42,37 @@ public class InventoryMovementServiceImpl implements InventoryMovementService {
         inventoryMovement.setQuantity(request.quantity());
         inventoryMovement.calculateTotalAmount();
         inventory.addInventoryMovement(inventoryMovement);
+        inventoryMovementRepository.save(inventoryMovement);
         return inventoryMapper.toResponse(inventoryMovement);
 
     }
 
     @Override
+    @Transactional(readOnly = true)
     public InventoryMovementResponse getInventoryMovement(Long id) {
-        return null;
+        InventoryMovement inventoryMovement = findInventoryMovementById(id);
+        return inventoryMapper.toResponse(inventoryMovement);
     }
 
+    @Transactional
     @Override
     public InventoryMovementResponse deleteInventoryMovement(Long id) {
-        return null;
+        InventoryMovement inventoryMovement = findInventoryMovementById(id);
+        inventoryMovementRepository.delete(inventoryMovement);
+        return inventoryMapper.toResponse(inventoryMovement);
     }
 
     @Override
+    @Transactional(readOnly = true)
     public PagedResponse<InventoryMovementResponse> getAllInventoryMovements(Pageable pageable) {
-        return null;
+        Page<InventoryMovement> inventoryMovements = inventoryMovementRepository.findAll(pageable);
+        Page<InventoryMovementResponse> response = inventoryMovements.map(inventoryMapper::toResponse);
+        return PagedResponse.from(response);
     }
 
     private Inventory findInventoryByProductId(Long productId) {
         return inventoryRepository.findByProductId(productId)
-                .orElseThrow(() -> new ResourceNotFoundException("Inventory not found"));
+                .orElseThrow(() -> new ResourceNotFoundException("Product inventory not found"));
     }
 
     private InventoryMovement findInventoryMovementById(Long id) {

@@ -4,6 +4,7 @@ import com.acharya.dikshanta.EcomStore.inventory.enums.MovementType;
 import lombok.Builder;
 
 import java.math.BigDecimal;
+import java.time.LocalDateTime;
 
 @Builder
 public record InventoryMovementResponse(
@@ -16,6 +17,7 @@ public record InventoryMovementResponse(
         Long categoryId,
         String categoryName,
         BigDecimal unitPrice,
-        BigDecimal totalAmount
+        BigDecimal totalAmount,
+        LocalDateTime movementDate
 ) {
 }
