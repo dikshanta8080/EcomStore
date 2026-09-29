@@ -32,9 +32,13 @@ public class SaleItem extends BaseEntity {
     @Column(name = "total", nullable = false)
     private BigDecimal total;
 
+    @Column(name = "tax", nullable = false)
+    private BigDecimal tax;
+
     @ManyToOne
     @JoinColumn(name = "sale_id")
     private Sale sale;
+
 
     public void calculateTotal() {
         total = BigDecimal.valueOf(quantity).multiply(unitPrice);

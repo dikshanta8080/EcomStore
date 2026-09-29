@@ -19,6 +19,7 @@ import java.util.UUID;
 @Setter
 @SuperBuilder
 public class Sale extends BaseEntity {
+    @Builder.Default
     @Column(name = "invoice_number", nullable = false, unique = true)
     UUID invoiceNumber = UUID.randomUUID();
 
@@ -46,6 +47,10 @@ public class Sale extends BaseEntity {
         total = subTotal.subtract(discount).add(tax);
     }
 
+    public void calculateTax() {
+        tax = saleItems.stream().map(SaleItem::getTax).reduce(BigDecimal.ZERO, BigDecimal::add);
+    }
+
     public void calculateSubTotal() {
         subTotal = saleItems.stream()
                 .map(SaleItem::getTotal).reduce(BigDecimal.ZERO, BigDecimal::add);
@@ -63,4 +68,13 @@ public class Sale extends BaseEntity {
         calculateTotal();
     }
 
+    public void addPayment(Payment payment) {
+        payments.add(payment);
+        payment.setSale(this);
+    }
+
+    public void removePayment(Payment payment) {
+        payments.remove(payment);
+        payment.setSale(null);
+    }
 }

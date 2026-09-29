@@ -4,7 +4,7 @@ public enum PaymentMethod {
     CASH,
     CARD,
     ESEWA,
+    KHALTI,
     KHALI,
     MOBILE_BANKING
-
 }
