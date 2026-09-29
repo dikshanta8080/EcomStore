@@ -25,8 +25,8 @@ import type { Product, ProductCreateRequest, ProductUpdateRequest, ProductQueryP
 import type { Category, CategoryRequest } from './types/category';
 import type { Unit, UnitRequest } from './types/unit';
 import type { TaxRate, TaxRateRequest } from './types/taxRate';
-import type { InventoryMovement, InventoryMovementRequest } from './types/inventory';
-import type { PagedResponse, PaginationParams } from './types/api';
+import type { InventoryMovement, InventoryMovementRequest, InventoryMovementFilterParams } from './types/inventory';
+import type { PagedResponse } from './types/api';
 
 export function App() {
   const [currentTab, setCurrentTab] = useState<NavTab>('dashboard');
@@ -51,7 +51,7 @@ export function App() {
   // Backend Aggregate Summary metrics
   const [productSummary, setProductSummary] = useState<ProductSummary | null>(null);
 
-  const [movementPagination, setMovementPagination] = useState<PaginationParams>({
+  const [movementFilterParams, setMovementFilterParams] = useState<InventoryMovementFilterParams>({
     page: 0,
     size: 10,
     sort: 'id',
@@ -148,7 +148,7 @@ export function App() {
   }, []);
 
   // Fetch paginated movements
-  const fetchPagedMovements = useCallback(async (params: PaginationParams) => {
+  const fetchPagedMovements = useCallback(async (params: InventoryMovementFilterParams) => {
     setIsMovementsLoading(true);
     try {
       const res = await inventoryService.getAllMovements(params);
@@ -171,7 +171,7 @@ export function App() {
         fetchTaxRates(),
         fetchAllProducts(),
         fetchPagedProducts(productQueryParams),
-        fetchPagedMovements(movementPagination),
+        fetchPagedMovements(movementFilterParams),
         fetchProductSummary(),
       ]);
       if (isMounted) {
@@ -195,7 +195,7 @@ export function App() {
         fetchTaxRates(),
         fetchAllProducts(),
         fetchPagedProducts(productQueryParams),
-        fetchPagedMovements(movementPagination),
+        fetchPagedMovements(movementFilterParams),
         fetchProductSummary(),
       ]);
       addToast('info', 'Store data refreshed successfully');
@@ -397,7 +397,7 @@ export function App() {
       await Promise.all([
         fetchAllProducts(),
         fetchPagedProducts(productQueryParams),
-        fetchPagedMovements(movementPagination),
+        fetchPagedMovements(movementFilterParams),
         fetchProductSummary(),
       ]);
     } catch (err) {
@@ -413,7 +413,7 @@ export function App() {
       addToast('success', `Movement record #${id} removed from history.`);
       await Promise.all([
         fetchAllProducts(),
-        fetchPagedMovements(movementPagination),
+        fetchPagedMovements(movementFilterParams),
         fetchProductSummary(),
       ]);
     } catch (err) {
@@ -540,9 +540,9 @@ export function App() {
           products={allProducts}
           units={units}
           isLoading={isMovementsLoading}
-          paginationParams={movementPagination}
-          onPaginationChange={(params) => {
-            setMovementPagination(params);
+          filterParams={movementFilterParams}
+          onFilterChange={(params) => {
+            setMovementFilterParams(params);
             fetchPagedMovements(params);
           }}
           onCreateMovement={handleCreateMovement}

@@ -823,7 +823,6 @@ export const ProductsPage: React.FC<ProductsPageProps> = ({
                   </th>
                   <th className="px-6 py-3.5">Category</th>
                   <th className="px-6 py-3.5">Base Unit</th>
-                  <th className="px-6 py-3.5">Tax</th>
                   <th
                     className="px-6 py-3.5 cursor-pointer hover:text-slate-900 transition-colors group"
                     onClick={() => handleSortChange('price')}
@@ -870,15 +869,6 @@ export const ProductsPage: React.FC<ProductsPageProps> = ({
                       <span className="inline-flex items-center px-2 py-0.5 rounded-md text-xs font-bold bg-indigo-50 text-indigo-700 border border-indigo-200/60 font-mono">
                         {product.baseUnitSymbol || 'PC'}
                       </span>
-                    </td>
-                    <td className="px-6 py-4">
-                      {product.taxRate !== undefined && product.taxRate !== null ? (
-                        <span className="inline-flex items-center px-2 py-0.5 rounded-md text-xs font-semibold bg-slate-100 text-slate-700 font-mono">
-                          {product.taxRate}%
-                        </span>
-                      ) : (
-                        <span className="text-xs text-slate-400">0%</span>
-                      )}
                     </td>
                     <td className="px-6 py-4 font-bold text-slate-900">
                       ${Number(product.price).toFixed(2)}

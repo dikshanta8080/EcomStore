@@ -3,6 +3,7 @@ package com.acharya.dikshanta.EcomStore.inventory.controller;
 import com.acharya.dikshanta.EcomStore.common.dto.request.PaginationRequest;
 import com.acharya.dikshanta.EcomStore.common.dto.response.ApiResponse;
 import com.acharya.dikshanta.EcomStore.common.dto.response.PagedResponse;
+import com.acharya.dikshanta.EcomStore.inventory.dto.request.InventoryMovementFilterRequest;
 import com.acharya.dikshanta.EcomStore.inventory.dto.request.InventoryMovementRequest;
 import com.acharya.dikshanta.EcomStore.inventory.dto.response.InventoryMovementResponse;
 import com.acharya.dikshanta.EcomStore.inventory.service.InventoryMovementService;
@@ -32,8 +33,9 @@ public class InventoryMovementController {
 
     @GetMapping
     public ResponseEntity<ApiResponse<PagedResponse<InventoryMovementResponse>>> getAllInventoryMovements(
-            @ModelAttribute PaginationRequest paginationRequest) {
-        var response = inventoryMovementService.getAllInventoryMovements(paginationRequest.toPageable());
+            @ModelAttribute PaginationRequest paginationRequest,
+            @ModelAttribute InventoryMovementFilterRequest filterRequest) {
+        var response = inventoryMovementService.getAllInventoryMovements(paginationRequest.toPageable(), filterRequest);
         return ResponseEntity.ok(ApiResponse.success(response));
     }
 

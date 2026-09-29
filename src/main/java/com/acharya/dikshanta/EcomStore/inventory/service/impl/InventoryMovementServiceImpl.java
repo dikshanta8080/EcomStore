@@ -3,6 +3,7 @@ package com.acharya.dikshanta.EcomStore.inventory.service.impl;
 import com.acharya.dikshanta.EcomStore.common.dto.response.PagedResponse;
 import com.acharya.dikshanta.EcomStore.common.exceptions.BusinessException;
 import com.acharya.dikshanta.EcomStore.common.exceptions.ResourceNotFoundException;
+import com.acharya.dikshanta.EcomStore.inventory.dto.request.InventoryMovementFilterRequest;
 import com.acharya.dikshanta.EcomStore.inventory.dto.request.InventoryMovementRequest;
 import com.acharya.dikshanta.EcomStore.inventory.dto.response.InventoryMovementResponse;
 import com.acharya.dikshanta.EcomStore.inventory.enums.MovementType;
@@ -12,6 +13,7 @@ import com.acharya.dikshanta.EcomStore.inventory.model.InventoryMovement;
 import com.acharya.dikshanta.EcomStore.inventory.repository.InventoryMovementRepository;
 import com.acharya.dikshanta.EcomStore.inventory.repository.InventoryRepository;
 import com.acharya.dikshanta.EcomStore.inventory.service.InventoryMovementService;
+import com.acharya.dikshanta.EcomStore.inventory.specifications.InventoryMovementSpecification;
 import com.acharya.dikshanta.EcomStore.products.model.Product;
 import com.acharya.dikshanta.EcomStore.units.model.ProductUnitConversion;
 import com.acharya.dikshanta.EcomStore.units.model.Unit;
@@ -21,6 +23,7 @@ import com.acharya.dikshanta.EcomStore.units.service.impl.ProductUnitConversionS
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -34,6 +37,7 @@ public class InventoryMovementServiceImpl implements InventoryMovementService {
     private final InventoryMapper inventoryMapper;
     private final UnitRepository unitRepository;
     private final ProductUnitConversionRepository productUnitConversionRepository;
+    private final InventoryMovementSpecification inventoryMovementSpecification;
 
     @Override
     @Transactional
@@ -110,8 +114,9 @@ public class InventoryMovementServiceImpl implements InventoryMovementService {
 
     @Override
     @Transactional(readOnly = true)
-    public PagedResponse<InventoryMovementResponse> getAllInventoryMovements(Pageable pageable) {
-        Page<InventoryMovement> inventoryMovements = inventoryMovementRepository.findAll(pageable);
+    public PagedResponse<InventoryMovementResponse> getAllInventoryMovements(Pageable pageable, InventoryMovementFilterRequest filterRequest) {
+        Specification<InventoryMovement> specification = inventoryMovementSpecification.getSpecification(filterRequest);
+        Page<InventoryMovement> inventoryMovements = inventoryMovementRepository.findAll(specification, pageable);
         Page<InventoryMovementResponse> response = inventoryMovements.map(inventoryMapper::toResponse);
         return PagedResponse.from(response);
     }

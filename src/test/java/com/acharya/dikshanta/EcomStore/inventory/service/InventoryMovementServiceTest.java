@@ -28,8 +28,20 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import java.math.BigDecimal;
 import java.util.Optional;
 
+import com.acharya.dikshanta.EcomStore.common.dto.response.PagedResponse;
+import com.acharya.dikshanta.EcomStore.inventory.dto.request.InventoryMovementFilterRequest;
+import com.acharya.dikshanta.EcomStore.inventory.specifications.InventoryMovementSpecification;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
+
+import java.util.List;
+
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
@@ -49,6 +61,9 @@ class InventoryMovementServiceTest {
 
     @Mock
     private ProductUnitConversionRepository productUnitConversionRepository;
+
+    @Mock
+    private InventoryMovementSpecification inventoryMovementSpecification;
 
     @InjectMocks
     private InventoryMovementServiceImpl inventoryMovementService;
@@ -221,5 +236,56 @@ class InventoryMovementServiceTest {
                 inventoryMovementService.createInventoryMovement(request)
         );
         assertTrue(exception.getMessage().contains("Insufficient stock"));
+    }
+
+    @Test
+    void shouldGetAllInventoryMovementsWithDynamicFiltering() {
+        InventoryMovement movement = InventoryMovement.builder()
+                .id(100L)
+                .movementType(MovementType.IN)
+                .quantity(new BigDecimal("10"))
+                .unit(kgUnit)
+                .baseQuantity(new BigDecimal("10"))
+                .baseUnit(kgUnit)
+                .conversionFactor(BigDecimal.ONE)
+                .unitPrice(new BigDecimal("80.00"))
+                .totalAmount(new BigDecimal("800.00"))
+                .inventory(riceInventory)
+                .build();
+
+        Page<InventoryMovement> pagedMovements = new PageImpl<>(List.of(movement), PageRequest.of(0, 10), 1);
+        Specification<InventoryMovement> mockSpec = mock(Specification.class);
+        InventoryMovementFilterRequest filterRequest = new InventoryMovementFilterRequest(
+                "Rice",
+                "Rice",
+                "RICE-001",
+                10L,
+                1L,
+                MovementType.IN,
+                1L,
+                new BigDecimal("5"),
+                new BigDecimal("50"),
+                new BigDecimal("100"),
+                new BigDecimal("1000"),
+                null,
+                null
+        );
+
+        when(inventoryMovementSpecification.getSpecification(filterRequest)).thenReturn(mockSpec);
+        when(inventoryMovementRepository.findAll(eq(mockSpec), any(Pageable.class))).thenReturn(pagedMovements);
+
+        PagedResponse<InventoryMovementResponse> result = inventoryMovementService.getAllInventoryMovements(
+                PageRequest.of(0, 10),
+                filterRequest
+        );
+
+        assertNotNull(result);
+        assertEquals(1, result.totalElements());
+        assertEquals(1, result.content().size());
+        assertEquals(100L, result.content().get(0).id());
+        assertEquals("Basmati Rice", result.content().get(0).productName());
+        assertEquals(MovementType.IN, result.content().get(0).movementType());
+        verify(inventoryMovementSpecification).getSpecification(filterRequest);
+        verify(inventoryMovementRepository).findAll(eq(mockSpec), any(Pageable.class));
     }
 }

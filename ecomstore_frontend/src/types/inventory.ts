@@ -29,3 +29,21 @@ export interface InventoryMovementRequest {
   unitId: number;
   unitPrice?: number;
 }
+
+export interface InventoryMovementFilterParams {
+  page?: number;
+  size?: number;
+  sort?: string;
+  direction?: 'asc' | 'desc';
+  search?: string;
+  productId?: number;
+  categoryId?: number;
+  movementType?: MovementType;
+  unitId?: number;
+  minQuantity?: number;
+  maxQuantity?: number;
+  minTotalAmount?: number;
+  maxTotalAmount?: number;
+  startDate?: string;
+  endDate?: string;
+}
