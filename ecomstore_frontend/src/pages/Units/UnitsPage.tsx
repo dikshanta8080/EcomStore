@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Plus, Scale, Edit2, Trash2, Tag, Layers } from 'lucide-react';
+import { Plus, Scale, Edit2, Trash2, Tag } from 'lucide-react';
 import type { Unit, UnitRequest, UnitType } from '../../types/unit';
 import { LoadingSpinner } from '../../components/common/LoadingSpinner';
 import { EmptyState } from '../../components/common/EmptyState';

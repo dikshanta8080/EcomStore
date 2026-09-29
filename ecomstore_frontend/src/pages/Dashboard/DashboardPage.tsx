@@ -10,7 +10,7 @@ import {
   ArrowRight,
   Calendar
 } from 'lucide-react';
-import type { Product } from '../../types/product';
+import type { Product, ProductSummary } from '../../types/product';
 import type { Category } from '../../types/category';
 import type { InventoryMovement } from '../../types/inventory';
 import type { NavTab } from '../../components/layout/Sidebar';
@@ -21,6 +21,7 @@ interface DashboardPageProps {
   products: Product[];
   categories: Category[];
   recentMovements: InventoryMovement[];
+  summary?: ProductSummary | null;
   isLoading: boolean;
   onNavigate: (tab: NavTab) => void;
   onOpenCreateProduct: () => void;
@@ -33,6 +34,7 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({
   products,
   categories,
   recentMovements,
+  summary,
   isLoading,
   onNavigate,
   onOpenCreateProduct,
@@ -44,12 +46,17 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({
     return <LoadingSpinner message="Loading dashboard metrics..." size="lg" />;
   }
 
-  const totalProducts = products.length;
+  const totalProducts = summary ? summary.totalProducts : products.length;
   const totalCategories = categories.length;
-  const totalStockUnits = products.reduce((acc, p) => acc + (p.stock ?? 0), 0);
+  const totalStockUnits = summary ? summary.totalStockUnits : products.reduce((acc, p) => acc + (p.stock ?? 0), 0);
   const lowStockProducts = products.filter((p) => (p.stock ?? 0) > 0 && (p.stock ?? 0) <= 10);
   const outOfStockProducts = products.filter((p) => (p.stock ?? 0) <= 0);
-  const healthyStockCount = products.filter((p) => (p.stock ?? 0) > 10).length;
+  const attentionCount = summary
+    ? summary.lowStockCount + summary.outOfStockCount
+    : lowStockProducts.length + outOfStockProducts.length;
+  const healthyStockCount = summary
+    ? summary.healthyStockCount
+    : products.filter((p) => (p.stock ?? 0) > 10).length;
 
   const formatDate = (dateStr?: string) => {
     if (!dateStr) return 'Recent';
@@ -193,7 +200,7 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({
           </div>
           <div className="mt-3 flex items-baseline justify-between">
             <span className="text-3xl font-black text-amber-700 font-mono">
-              {lowStockProducts.length + outOfStockProducts.length}
+              {attentionCount}
             </span>
             <span className="text-xs font-semibold text-amber-600 flex items-center gap-0.5">
               Attention <ArrowRight className="h-3 w-3" />

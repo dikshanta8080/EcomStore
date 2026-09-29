@@ -2,7 +2,7 @@ import React from 'react';
 import { Modal } from '../../components/common/Modal';
 import { StockBadge } from '../../components/common/Badge';
 import type { Product } from '../../types/product';
-import { Tag, Hash, DollarSign, Layers, ArrowLeftRight, Scale, ArrowRight } from 'lucide-react';
+import { Tag, Hash, DollarSign, ArrowLeftRight, Scale, ArrowRight } from 'lucide-react';
 
 interface ProductDetailsModalProps {
   isOpen: boolean;

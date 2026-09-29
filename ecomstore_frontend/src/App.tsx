@@ -18,7 +18,7 @@ import { unitService } from './api/unitService';
 import { inventoryService } from './api/inventoryService';
 import { getErrorMessage } from './api/client';
 
-import type { Product, ProductCreateRequest, ProductUpdateRequest } from './types/product';
+import type { Product, ProductCreateRequest, ProductUpdateRequest, ProductQueryParams, ProductSummary } from './types/product';
 import type { Category, CategoryRequest } from './types/category';
 import type { Unit, UnitRequest } from './types/unit';
 import type { InventoryMovement, InventoryMovementRequest } from './types/inventory';
@@ -35,13 +35,16 @@ export function App() {
   const [pagedProducts, setPagedProducts] = useState<PagedResponse<Product> | null>(null);
   const [pagedMovements, setPagedMovements] = useState<PagedResponse<InventoryMovement> | null>(null);
 
-  // Pagination states
-  const [productPagination, setProductPagination] = useState<PaginationParams>({
+  // Pagination & Filter query states
+  const [productQueryParams, setProductQueryParams] = useState<ProductQueryParams>({
     page: 0,
     size: 10,
     sort: 'id',
     direction: 'asc',
   });
+
+  // Backend Aggregate Summary metrics
+  const [productSummary, setProductSummary] = useState<ProductSummary | null>(null);
 
   const [movementPagination, setMovementPagination] = useState<PaginationParams>({
     page: 0,
@@ -96,7 +99,7 @@ export function App() {
   }, [addToast]);
 
   // Fetch paginated products for Products tab
-  const fetchPagedProducts = useCallback(async (params: PaginationParams) => {
+  const fetchPagedProducts = useCallback(async (params: ProductQueryParams) => {
     setIsProductsLoading(true);
     try {
       const res = await productService.getAllProducts(params);
@@ -117,6 +120,16 @@ export function App() {
       addToast('error', getErrorMessage(err));
     }
   }, [addToast]);
+
+  // Fetch backend aggregate product summary metrics
+  const fetchProductSummary = useCallback(async () => {
+    try {
+      const summary = await productService.getProductSummary();
+      setProductSummary(summary);
+    } catch (err) {
+      console.error('Failed to fetch product summary:', err);
+    }
+  }, []);
 
   // Fetch paginated movements
   const fetchPagedMovements = useCallback(async (params: PaginationParams) => {
@@ -140,8 +153,9 @@ export function App() {
         fetchCategories(),
         fetchUnits(),
         fetchAllProducts(),
-        fetchPagedProducts(productPagination),
+        fetchPagedProducts(productQueryParams),
         fetchPagedMovements(movementPagination),
+        fetchProductSummary(),
       ]);
       if (isMounted) {
         setIsInitialLoading(false);
@@ -162,8 +176,9 @@ export function App() {
         fetchCategories(),
         fetchUnits(),
         fetchAllProducts(),
-        fetchPagedProducts(productPagination),
+        fetchPagedProducts(productQueryParams),
         fetchPagedMovements(movementPagination),
+        fetchProductSummary(),
       ]);
       addToast('info', 'Store data refreshed successfully');
     } catch (err) {
@@ -178,7 +193,7 @@ export function App() {
     try {
       const created = await productService.createProduct(data);
       addToast('success', `Product "${created.name}" created successfully with base unit ${created.baseUnitSymbol || ''}.`);
-      await Promise.all([fetchAllProducts(), fetchPagedProducts(productPagination)]);
+      await Promise.all([fetchAllProducts(), fetchPagedProducts(productQueryParams), fetchProductSummary()]);
     } catch (err) {
       const msg = getErrorMessage(err);
       addToast('error', msg);
@@ -190,7 +205,7 @@ export function App() {
     try {
       const updated = await productService.updateProduct(id, data);
       addToast('success', `Product "${updated.name}" updated successfully.`);
-      await Promise.all([fetchAllProducts(), fetchPagedProducts(productPagination)]);
+      await Promise.all([fetchAllProducts(), fetchPagedProducts(productQueryParams), fetchProductSummary()]);
     } catch (err) {
       const msg = getErrorMessage(err);
       addToast('error', msg);
@@ -202,7 +217,7 @@ export function App() {
     try {
       const deleted = await productService.deleteProduct(id);
       addToast('success', `Product "${deleted.name}" deleted successfully.`);
-      await Promise.all([fetchAllProducts(), fetchPagedProducts(productPagination)]);
+      await Promise.all([fetchAllProducts(), fetchPagedProducts(productQueryParams), fetchProductSummary()]);
     } catch (err) {
       const msg = getErrorMessage(err);
       addToast('error', msg);
@@ -227,7 +242,7 @@ export function App() {
     try {
       const updated = await categoryService.updateCategory(id, data);
       addToast('success', `Category "${updated.name}" updated successfully.`);
-      await Promise.all([fetchCategories(), fetchAllProducts(), fetchPagedProducts(productPagination)]);
+      await Promise.all([fetchCategories(), fetchAllProducts(), fetchPagedProducts(productQueryParams)]);
     } catch (err) {
       const msg = getErrorMessage(err);
       addToast('error', msg);
@@ -239,7 +254,7 @@ export function App() {
     try {
       const msg = await categoryService.deleteCategory(id);
       addToast('success', msg);
-      await Promise.all([fetchCategories(), fetchAllProducts(), fetchPagedProducts(productPagination)]);
+      await Promise.all([fetchCategories(), fetchAllProducts(), fetchPagedProducts(productQueryParams)]);
     } catch (err) {
       const msg = getErrorMessage(err);
       addToast('error', msg);
@@ -296,8 +311,9 @@ export function App() {
       // Refresh inventory and movements
       await Promise.all([
         fetchAllProducts(),
-        fetchPagedProducts(productPagination),
+        fetchPagedProducts(productQueryParams),
         fetchPagedMovements(movementPagination),
+        fetchProductSummary(),
       ]);
     } catch (err) {
       const msg = getErrorMessage(err);
@@ -310,7 +326,11 @@ export function App() {
     try {
       await inventoryService.deleteMovement(id);
       addToast('success', `Movement record #${id} removed from history.`);
-      await fetchPagedMovements(movementPagination);
+      await Promise.all([
+        fetchAllProducts(),
+        fetchPagedMovements(movementPagination),
+        fetchProductSummary(),
+      ]);
     } catch (err) {
       const msg = getErrorMessage(err);
       addToast('error', msg);
@@ -324,7 +344,9 @@ export function App() {
     setIsQuickMovementModalOpen(true);
   };
 
-  const lowStockCount = allProducts.filter((p) => (p.stock ?? 0) > 0 && (p.stock ?? 0) <= 10).length;
+  const lowStockCount = productSummary
+    ? productSummary.lowStockCount
+    : allProducts.filter((p) => (p.stock ?? 0) > 0 && (p.stock ?? 0) <= 10).length;
 
   return (
     <Layout
@@ -343,6 +365,7 @@ export function App() {
           products={allProducts}
           categories={categories}
           recentMovements={pagedMovements?.content || []}
+          summary={productSummary}
           isLoading={isInitialLoading}
           onNavigate={setCurrentTab}
           onOpenCreateProduct={() => setIsQuickProductModalOpen(true)}
@@ -360,10 +383,11 @@ export function App() {
           pagedProducts={pagedProducts}
           categories={categories}
           units={units}
+          summary={productSummary}
           isLoading={isProductsLoading}
-          paginationParams={productPagination}
-          onPaginationChange={(params) => {
-            setProductPagination(params);
+          queryParams={productQueryParams}
+          onQueryParamsChange={(params) => {
+            setProductQueryParams(params);
             fetchPagedProducts(params);
           }}
           onCreateProduct={handleCreateProduct}
@@ -371,7 +395,7 @@ export function App() {
           onDeleteProduct={handleDeleteProduct}
           onOpenMovementModalForProduct={handleOpenMovementForProduct}
           onRefreshProducts={async () => {
-            await Promise.all([fetchAllProducts(), fetchPagedProducts(productPagination)]);
+            await Promise.all([fetchAllProducts(), fetchPagedProducts(productQueryParams), fetchProductSummary()]);
           }}
         />
       )}
@@ -401,6 +425,7 @@ export function App() {
       {currentTab === 'inventory' && (
         <InventoryPage
           products={allProducts}
+          summary={productSummary}
           isLoading={isInitialLoading}
           onOpenMovementModalForProduct={handleOpenMovementForProduct}
         />

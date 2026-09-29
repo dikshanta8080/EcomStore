@@ -8,30 +8,33 @@ import {
   XCircle,
   Package
 } from 'lucide-react';
-import type { Product } from '../../types/product';
+import type { Product, ProductSummary } from '../../types/product';
 import { StockBadge } from '../../components/common/Badge';
 import { LoadingSpinner } from '../../components/common/LoadingSpinner';
 import { EmptyState } from '../../components/common/EmptyState';
 
 interface InventoryPageProps {
   products: Product[];
+  summary?: ProductSummary | null;
   isLoading: boolean;
   onOpenMovementModalForProduct: (product: Product) => void;
 }
 
 export const InventoryPage: React.FC<InventoryPageProps> = ({
   products,
+  summary,
   isLoading,
   onOpenMovementModalForProduct,
 }) => {
   const [searchTerm, setSearchTerm] = useState('');
   const [stockFilter, setStockFilter] = useState<'ALL' | 'IN_STOCK' | 'LOW_STOCK' | 'OUT_OF_STOCK'>('ALL');
 
-  // Metrics
-  const totalStockUnits = products.reduce((acc, p) => acc + (p.stock ?? 0), 0);
-  const outOfStockCount = products.filter((p) => (p.stock ?? 0) <= 0).length;
-  const lowStockCount = products.filter((p) => (p.stock ?? 0) > 0 && (p.stock ?? 0) <= 10).length;
-  const inStockCount = products.filter((p) => (p.stock ?? 0) > 10).length;
+  // Backend aggregate metrics (with fallback to client array)
+  const totalProducts = summary ? summary.totalProducts : products.length;
+  const totalStockUnits = summary ? summary.totalStockUnits : products.reduce((acc, p) => acc + (p.stock ?? 0), 0);
+  const outOfStockCount = summary ? summary.outOfStockCount : products.filter((p) => (p.stock ?? 0) <= 0).length;
+  const lowStockCount = summary ? summary.lowStockCount : products.filter((p) => (p.stock ?? 0) > 0 && (p.stock ?? 0) <= 10).length;
+  const inStockCount = summary ? summary.healthyStockCount : products.filter((p) => (p.stock ?? 0) > 10).length;
 
   const filteredProducts = products.filter((p) => {
     const matchesSearch =
@@ -64,9 +67,11 @@ export const InventoryPage: React.FC<InventoryPageProps> = ({
           </div>
           <div className="mt-2 flex items-baseline gap-2">
             <span className="text-2xl font-black text-slate-900 font-mono">
-              {totalStockUnits.toLocaleString()}
+              {totalProducts}
             </span>
-            <span className="text-xs text-slate-400">across catalog</span>
+            <span className="text-xs text-slate-400">
+              {Number(totalStockUnits).toLocaleString()} units across catalog
+            </span>
           </div>
         </div>
 

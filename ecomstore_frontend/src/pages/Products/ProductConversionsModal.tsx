@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Modal } from '../../components/common/Modal';
 import type { Product } from '../../types/product';
-import type { Unit, ProductUnitConversion, ProductUnitConversionRequest } from '../../types/unit';
+import type { Unit, ProductUnitConversion } from '../../types/unit';
 import { productUnitConversionService } from '../../api/productUnitConversionService';
 import { getErrorMessage } from '../../api/client';
 import { Scale, Plus, Trash2, CheckCircle2, XCircle, AlertCircle, ArrowRight } from 'lucide-react';

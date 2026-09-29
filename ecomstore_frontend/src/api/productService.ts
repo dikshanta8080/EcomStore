@@ -1,17 +1,46 @@
 import { apiClient } from './client';
-import type { ApiResponse, PagedResponse, PaginationParams } from '../types/api';
-import type { Product, ProductCreateRequest, ProductUpdateRequest } from '../types/product';
+import type { ApiResponse, PagedResponse } from '../types/api';
+import type { Product, ProductCreateRequest, ProductUpdateRequest, ProductQueryParams, ProductSummary } from '../types/product';
 
 export const productService = {
-  async getAllProducts(params?: PaginationParams): Promise<PagedResponse<Product>> {
+  async getAllProducts(params?: ProductQueryParams): Promise<PagedResponse<Product>> {
+    const queryParams: Record<string, string | number> = {
+      page: params?.page ?? 0,
+      size: params?.size ?? 10,
+      sort: params?.sort ?? 'id',
+      direction: params?.direction ?? 'asc',
+    };
+
+    if (params?.nameOrCategoryName?.trim()) {
+      queryParams.nameOrCategoryName = params.nameOrCategoryName.trim();
+    }
+    if (params?.sku?.trim()) {
+      queryParams.sku = params.sku.trim();
+    }
+    if (params?.categoryId !== undefined && params?.categoryId !== null && params.categoryId > 0) {
+      queryParams.categoryId = params.categoryId;
+    }
+    if (params?.minPrice !== undefined && params?.minPrice !== null && !isNaN(params.minPrice)) {
+      queryParams.minPrice = params.minPrice;
+    }
+    if (params?.maxPrice !== undefined && params?.maxPrice !== null && !isNaN(params.maxPrice)) {
+      queryParams.maxPrice = params.maxPrice;
+    }
+    if (params?.minStock !== undefined && params?.minStock !== null && !isNaN(params.minStock)) {
+      queryParams.minStock = params.minStock;
+    }
+    if (params?.maxStock !== undefined && params?.maxStock !== null && !isNaN(params.maxStock)) {
+      queryParams.maxStock = params.maxStock;
+    }
+
     const res = await apiClient.get<ApiResponse<PagedResponse<Product>>>('/products', {
-      params: {
-        page: params?.page ?? 0,
-        size: params?.size ?? 10,
-        sort: params?.sort ?? 'id',
-        direction: params?.direction ?? 'asc',
-      },
+      params: queryParams,
     });
+    return res.data.data;
+  },
+
+  async getProductSummary(): Promise<ProductSummary> {
+    const res = await apiClient.get<ApiResponse<ProductSummary>>('/products/summary');
     return res.data.data;
   },
 

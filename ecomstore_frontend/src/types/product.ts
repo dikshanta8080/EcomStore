@@ -32,3 +32,23 @@ export interface ProductUpdateRequest {
   categoryId?: number;
   baseUnitId?: number;
 }
+
+export interface ProductFilterParams {
+  nameOrCategoryName?: string;
+  sku?: string;
+  categoryId?: number;
+  minPrice?: number;
+  maxPrice?: number;
+  minStock?: number;
+  maxStock?: number;
+}
+
+export type ProductQueryParams = import('./api').PaginationParams & ProductFilterParams;
+
+export interface ProductSummary {
+  totalProducts: number;
+  totalStockUnits: number;
+  healthyStockCount: number;
+  lowStockCount: number;
+  outOfStockCount: number;
+}
