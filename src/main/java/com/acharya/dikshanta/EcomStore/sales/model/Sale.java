@@ -1,16 +1,14 @@
 package com.acharya.dikshanta.EcomStore.sales.model;
 
 import com.acharya.dikshanta.EcomStore.common.model.BaseEntity;
-import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
-import jakarta.persistence.Table;
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
+import com.acharya.dikshanta.EcomStore.payment.model.Payment;
+import jakarta.persistence.*;
+import lombok.*;
 import lombok.experimental.SuperBuilder;
 
 import java.math.BigDecimal;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.UUID;
 
 @Entity
@@ -36,8 +34,33 @@ public class Sale extends BaseEntity {
     @Column(name = "total", nullable = false)
     BigDecimal total;
 
-    private void calculateTotal() {
+    @OneToMany(mappedBy = "sale", cascade = CascadeType.ALL, orphanRemoval = true)
+    @Builder.Default
+    private List<SaleItem> saleItems = new ArrayList<>();
+
+    @OneToMany(mappedBy = "sale", cascade = CascadeType.ALL, orphanRemoval = true)
+    @Builder.Default
+    private List<Payment> payments = new ArrayList<>();
+
+    public void calculateTotal() {
         total = subTotal.subtract(discount).add(tax);
+    }
+
+    public void calculateSubTotal() {
+        subTotal = saleItems.stream()
+                .map(SaleItem::getTotal).reduce(BigDecimal.ZERO, BigDecimal::add);
+    }
+
+    public void addSaleItem(SaleItem saleItem) {
+        saleItems.add(saleItem);
+        saleItem.setSale(this);
+        calculateTotal();
+    }
+
+    public void removeSaleItem(SaleItem saleItem) {
+        saleItems.remove(saleItem);
+        saleItem.setSale(null);
+        calculateTotal();
     }
 
 }

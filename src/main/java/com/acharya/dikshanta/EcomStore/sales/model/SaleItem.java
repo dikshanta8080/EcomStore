@@ -1,8 +1,8 @@
 package com.acharya.dikshanta.EcomStore.sales.model;
 
 import com.acharya.dikshanta.EcomStore.common.model.BaseEntity;
-import jakarta.persistence.Entity;
-import jakarta.persistence.Table;
+import com.acharya.dikshanta.EcomStore.products.model.Product;
+import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -19,7 +19,24 @@ import java.math.BigDecimal;
 @Getter
 @Setter
 public class SaleItem extends BaseEntity {
-    private Long productId;
+    @ManyToOne
+    @JoinColumn(name = "product_id")
+    private Product product;
+
+    @Column(name = "quantity", nullable = false)
     private Long quantity;
-    private BigDecimal price;
+
+    @Column(name = "price", nullable = false)
+    private BigDecimal unitPrice;
+
+    @Column(name = "total", nullable = false)
+    private BigDecimal total;
+
+    @ManyToOne
+    @JoinColumn(name = "sale_id")
+    private Sale sale;
+
+    public void calculateTotal() {
+        total = BigDecimal.valueOf(quantity).multiply(unitPrice);
+    }
 }
