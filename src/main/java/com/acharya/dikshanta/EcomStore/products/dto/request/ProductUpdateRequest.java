@@ -7,6 +7,7 @@ public record ProductUpdateRequest(
         String sku,
         String description,
         BigDecimal price,
-        Long categoryId
+        Long categoryId,
+        Long baseUnitId
 ) {
 }

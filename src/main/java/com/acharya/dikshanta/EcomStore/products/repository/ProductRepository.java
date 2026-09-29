@@ -14,11 +14,13 @@ import java.util.Optional;
 public interface ProductRepository extends JpaRepository<Product, Long>, JpaSpecificationExecutor<Product> {
     boolean existsByNameOrSku(String name, String sku);
 
+    boolean existsByBaseUnitId(Long baseUnitId);
+
     @Override
-    @EntityGraph(attributePaths = {"category", "inventory"})
+    @EntityGraph(attributePaths = {"category", "inventory", "baseUnit", "unitConversions", "unitConversions.unit"})
     Optional<Product> findById(Long id);
 
     @Override
-    @EntityGraph(attributePaths = {"category", "inventory"})
+    @EntityGraph(attributePaths = {"category", "inventory", "baseUnit", "unitConversions", "unitConversions.unit"})
     Page<Product> findAll(Pageable pageable);
 }

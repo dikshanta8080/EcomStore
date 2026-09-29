@@ -6,6 +6,7 @@ import jakarta.persistence.*;
 import lombok.*;
 import lombok.experimental.SuperBuilder;
 
+import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -17,9 +18,11 @@ import java.util.List;
 @Setter
 @SuperBuilder
 public class Inventory extends BaseEntity {
-    private static final Long ALERT_THRESHOLD = 10L;
-    @Column(name = "stock", nullable = false)
-    private Long stock;
+    private static final BigDecimal ALERT_THRESHOLD = new BigDecimal("10.0000");
+
+    @Column(name = "stock", nullable = false, precision = 19, scale = 4)
+    @Builder.Default
+    private BigDecimal stock = BigDecimal.ZERO;
 
     @OneToOne
     @JoinColumn(name = "product_id", nullable = false, unique = true)
@@ -30,15 +33,21 @@ public class Inventory extends BaseEntity {
     private List<InventoryMovement> inventoryMovements = new ArrayList<>();
 
     public boolean isLowStock() {
-        return stock <= ALERT_THRESHOLD;
+        return stock != null && stock.compareTo(ALERT_THRESHOLD) <= 0;
     }
 
-    public void updateStock(Long quantity) {
-        this.stock += quantity;
+    public void updateStock(BigDecimal quantity) {
+        if (this.stock == null) {
+            this.stock = BigDecimal.ZERO;
+        }
+        this.stock = this.stock.add(quantity);
     }
 
-    public void reduceStock(Long quantity) {
-        this.stock -= quantity;
+    public void reduceStock(BigDecimal quantity) {
+        if (this.stock == null) {
+            this.stock = BigDecimal.ZERO;
+        }
+        this.stock = this.stock.subtract(quantity);
     }
 
     public void addInventoryMovement(InventoryMovement inventoryMovement) {
@@ -54,6 +63,4 @@ public class Inventory extends BaseEntity {
             inventoryMovement.setInventory(null);
         }
     }
-
-
 }

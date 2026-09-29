@@ -24,7 +24,11 @@ public record ProductCreateRequest(
 
         @NotNull(message = "Category ID is required")
         @Positive(message = "Category ID must be positive")
-        Long categoryId
+        Long categoryId,
+
+        @NotNull(message = "Base unit ID is required")
+        @Positive(message = "Base unit ID must be positive")
+        Long baseUnitId
 
 ) {
 }

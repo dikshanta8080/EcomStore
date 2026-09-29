@@ -13,10 +13,28 @@ import java.util.Optional;
 public interface InventoryMovementRepository extends JpaRepository<InventoryMovement, Long> {
 
     @Override
-    @EntityGraph(attributePaths = {"inventory", "inventory.product", "inventory.product.category"})
+    @EntityGraph(attributePaths = {
+            "inventory",
+            "inventory.product",
+            "inventory.product.category",
+            "inventory.product.baseUnit",
+            "unit",
+            "baseUnit"
+    })
     Optional<InventoryMovement> findById(Long id);
 
     @Override
-    @EntityGraph(attributePaths = {"inventory", "inventory.product", "inventory.product.category"})
+    @EntityGraph(attributePaths = {
+            "inventory",
+            "inventory.product",
+            "inventory.product.category",
+            "inventory.product.baseUnit",
+            "unit",
+            "baseUnit"
+    })
     Page<InventoryMovement> findAll(Pageable pageable);
+
+    boolean existsByUnitIdOrBaseUnitId(Long unitId, Long baseUnitId);
+
+    boolean existsByInventoryProduct_IdAndUnitId(Long productId, Long unitId);
 }

@@ -8,11 +8,12 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.math.BigDecimal;
+
 @Service
 @RequiredArgsConstructor
 public class InventoryServiceImpl implements InventoryService {
     private final InventoryRepository inventoryRepository;
-
 
     @Override
     @Transactional
@@ -34,7 +35,7 @@ public class InventoryServiceImpl implements InventoryService {
     private Inventory buildInventory(Product product) {
         return Inventory.builder()
                 .product(product)
-                .stock(0L)
+                .stock(BigDecimal.ZERO)
                 .build();
     }
 
