@@ -5,11 +5,7 @@ import com.acharya.dikshanta.EcomStore.inventory.model.Inventory;
 import com.acharya.dikshanta.EcomStore.units.model.ProductUnitConversion;
 import com.acharya.dikshanta.EcomStore.units.model.Unit;
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
+import lombok.*;
 import lombok.experimental.SuperBuilder;
 
 import java.math.BigDecimal;
@@ -50,6 +46,15 @@ public class Product extends BaseEntity {
     @OneToMany(mappedBy = "product", cascade = CascadeType.ALL, orphanRemoval = true)
     @Builder.Default
     private List<ProductUnitConversion> unitConversions = new ArrayList<>();
+
+    @ManyToOne
+    @JoinColumn(name = "tax_rate_id")
+    private TaxRate taxRate;
+
+    @Column(name = "active", nullable = false)
+    @org.hibernate.annotations.ColumnDefault("true")
+    @Builder.Default
+    private Boolean active = true;
 
     public void addUnitConversion(ProductUnitConversion conversion) {
         if (conversion != null) {

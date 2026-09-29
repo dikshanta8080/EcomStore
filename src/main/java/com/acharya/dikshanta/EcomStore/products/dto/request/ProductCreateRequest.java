@@ -28,7 +28,9 @@ public record ProductCreateRequest(
 
         @NotNull(message = "Base unit ID is required")
         @Positive(message = "Base unit ID must be positive")
-        Long baseUnitId
+        Long baseUnitId,
+
+        Long taxRateId
 
 ) {
 }

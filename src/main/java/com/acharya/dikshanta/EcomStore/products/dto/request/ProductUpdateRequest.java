@@ -8,6 +8,7 @@ public record ProductUpdateRequest(
         String description,
         BigDecimal price,
         Long categoryId,
-        Long baseUnitId
+        Long baseUnitId,
+        Long taxRateId
 ) {
 }

@@ -50,6 +50,10 @@ public class InventoryMovementServiceImpl implements InventoryMovementService {
             throw new BusinessException("Product '" + product.getName() + "' does not have a configured base unit");
         }
 
+        if (Boolean.FALSE.equals(product.getActive())) {
+            throw new BusinessException("Cannot record inventory movement for archived product '" + product.getName() + "'. Restore the product first.");
+        }
+
         Unit transactionUnit = unitRepository.findById(request.unitId())
                 .orElseThrow(() -> new ResourceNotFoundException("Unit not found with id: " + request.unitId()));
 

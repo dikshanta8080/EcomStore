@@ -15,13 +15,17 @@ public interface ProductMapper {
     @Mapping(target = "baseUnitId", source = "baseUnit.id")
     @Mapping(target = "baseUnitName", source = "baseUnit.name")
     @Mapping(target = "baseUnitSymbol", source = "baseUnit.symbol")
+    @Mapping(target = "taxRateId", source = "taxRate.id")
+    @Mapping(target = "taxRate", source = "taxRate.rate")
     @Mapping(target = "conversions", source = "unitConversions")
     ProductResponse toProductResponse(Product product);
 
     @Mapping(target = "category", ignore = true)
     @Mapping(target = "baseUnit", ignore = true)
+    @Mapping(target = "taxRate", ignore = true)
     @Mapping(target = "inventory", ignore = true)
     @Mapping(target = "unitConversions", ignore = true)
     @Mapping(target = "id", ignore = true)
+    @Mapping(target = "active", ignore = true)
     Product toProduct(ProductCreateRequest productCreateRequest);
 }

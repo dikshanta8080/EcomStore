@@ -6,20 +6,26 @@ import com.acharya.dikshanta.EcomStore.common.exceptions.ResourceNotFoundExcepti
 import com.acharya.dikshanta.EcomStore.inventory.model.Inventory;
 import com.acharya.dikshanta.EcomStore.inventory.service.InventoryService;
 import com.acharya.dikshanta.EcomStore.products.dto.request.ProductCreateRequest;
+import com.acharya.dikshanta.EcomStore.products.dto.request.ProductFilterRequest;
 import com.acharya.dikshanta.EcomStore.products.dto.request.ProductUpdateRequest;
 import com.acharya.dikshanta.EcomStore.products.dto.response.ProductResponse;
+import com.acharya.dikshanta.EcomStore.products.dto.response.ProductSummaryResponse;
 import com.acharya.dikshanta.EcomStore.products.mapper.ProductMapper;
 import com.acharya.dikshanta.EcomStore.products.model.Category;
 import com.acharya.dikshanta.EcomStore.products.model.Product;
+import com.acharya.dikshanta.EcomStore.products.model.TaxRate;
 import com.acharya.dikshanta.EcomStore.products.repository.CategoryRepository;
 import com.acharya.dikshanta.EcomStore.products.repository.ProductRepository;
+import com.acharya.dikshanta.EcomStore.products.repository.TaxRateRepository;
 import com.acharya.dikshanta.EcomStore.products.service.ProductService;
+import com.acharya.dikshanta.EcomStore.products.specifications.ProductSpecification;
 import com.acharya.dikshanta.EcomStore.units.model.ProductUnitConversion;
 import com.acharya.dikshanta.EcomStore.units.model.Unit;
 import com.acharya.dikshanta.EcomStore.units.repository.UnitRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -32,7 +38,10 @@ public class ProductServiceImpl implements ProductService {
     private final ProductMapper productMapper;
     private final CategoryRepository categoryRepository;
     private final UnitRepository unitRepository;
+    private final TaxRateRepository taxRateRepository;
     private final InventoryService inventoryService;
+    private final ProductSpecification productSpecification;
+    private final com.acharya.dikshanta.EcomStore.units.config.DataInitializer dataInitializer;
 
     @Transactional
     @Override
@@ -44,8 +53,12 @@ public class ProductServiceImpl implements ProductService {
         Product product = productMapper.toProduct(productCreateRequest);
         product.setCategory(category);
         product.setBaseUnit(baseUnit);
+        if (productCreateRequest.taxRateId() != null) {
+            TaxRate taxRate = findTaxRateById(productCreateRequest.taxRateId());
+            product.setTaxRate(taxRate);
+        }
 
-        // Auto-configure the base unit conversion (1 baseUnit = 1.0 baseUnit)
+
         ProductUnitConversion baseUnitConversion = ProductUnitConversion.builder()
                 .product(product)
                 .unit(baseUnit)
@@ -73,8 +86,18 @@ public class ProductServiceImpl implements ProductService {
     @Transactional
     public ProductResponse deleteProduct(Long id) {
         Product product = findProductById(id);
-        productRepository.delete(product);
-        return productMapper.toProductResponse(product);
+        product.setActive(false);
+        Product saved = productRepository.save(product);
+        return productMapper.toProductResponse(saved);
+    }
+
+    @Override
+    @Transactional
+    public ProductResponse restoreProduct(Long id) {
+        Product product = findProductById(id);
+        product.setActive(true);
+        Product saved = productRepository.save(product);
+        return productMapper.toProductResponse(saved);
     }
 
     @Transactional(readOnly = true)
@@ -86,10 +109,34 @@ public class ProductServiceImpl implements ProductService {
 
     @Transactional(readOnly = true)
     @Override
-    public PagedResponse<ProductResponse> getAllProducts(Pageable pageable) {
-        Page<Product> products = productRepository.findAll(pageable);
+    public PagedResponse<ProductResponse> getAllProducts(Pageable pageable, ProductFilterRequest filterRequest) {
+        Specification<Product> specification = productSpecification.getSpecification(filterRequest);
+        Page<Product> products = productRepository.findAll(specification, pageable);
+
         Page<ProductResponse> responsePage = products.map(productMapper::toProductResponse);
         return PagedResponse.from(responsePage);
+    }
+
+    @Transactional(readOnly = true)
+    @Override
+    public ProductSummaryResponse getProductSummary() {
+        var projection = productRepository.getProductSummary();
+        if (projection == null) {
+            return new ProductSummaryResponse(0L, BigDecimal.ZERO, 0L, 0L, 0L);
+        }
+        return new ProductSummaryResponse(
+                projection.getTotalProducts() != null ? projection.getTotalProducts() : 0L,
+                projection.getTotalStockUnits() != null ? projection.getTotalStockUnits() : BigDecimal.ZERO,
+                projection.getHealthyStockCount() != null ? projection.getHealthyStockCount() : 0L,
+                projection.getLowStockCount() != null ? projection.getLowStockCount() : 0L,
+                projection.getOutOfStockCount() != null ? projection.getOutOfStockCount() : 0L
+        );
+    }
+
+    @Override
+    @Transactional
+    public void seedSampleData() {
+        dataInitializer.seedAllData();
     }
 
     private Product findProductById(Long id) {
@@ -132,5 +179,18 @@ public class ProductServiceImpl implements ProductService {
             Unit newBaseUnit = findUnitById(productUpdateRequest.baseUnitId());
             product.setBaseUnit(newBaseUnit);
         }
+        if (productUpdateRequest.taxRateId() != null) {
+            if (productUpdateRequest.taxRateId() <= 0) {
+                product.setTaxRate(null);
+            } else {
+                TaxRate newTaxRate = findTaxRateById(productUpdateRequest.taxRateId());
+                product.setTaxRate(newTaxRate);
+            }
+        }
+    }
+
+    private TaxRate findTaxRateById(Long id) {
+        return taxRateRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Tax rate not found with id: " + id));
     }
 }

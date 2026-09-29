@@ -4,8 +4,10 @@ import com.acharya.dikshanta.EcomStore.common.dto.request.PaginationRequest;
 import com.acharya.dikshanta.EcomStore.common.dto.response.ApiResponse;
 import com.acharya.dikshanta.EcomStore.common.dto.response.PagedResponse;
 import com.acharya.dikshanta.EcomStore.products.dto.request.ProductCreateRequest;
+import com.acharya.dikshanta.EcomStore.products.dto.request.ProductFilterRequest;
 import com.acharya.dikshanta.EcomStore.products.dto.request.ProductUpdateRequest;
 import com.acharya.dikshanta.EcomStore.products.dto.response.ProductResponse;
+import com.acharya.dikshanta.EcomStore.products.dto.response.ProductSummaryResponse;
 import com.acharya.dikshanta.EcomStore.products.service.ProductService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -28,9 +30,24 @@ public class ProductController {
 
     @GetMapping
     public ResponseEntity<ApiResponse<PagedResponse<ProductResponse>>> getAllProducts(
-            @ModelAttribute PaginationRequest paginationRequest) {
-        var response = productService.getAllProducts(paginationRequest.toPageable());
+            @ModelAttribute PaginationRequest paginationRequest,
+            @ModelAttribute ProductFilterRequest filterRequest
+
+    ) {
+        var response = productService.getAllProducts(paginationRequest.toPageable(), filterRequest);
         return ResponseEntity.ok(ApiResponse.success(response));
+    }
+
+    @GetMapping("/summary")
+    public ResponseEntity<ApiResponse<ProductSummaryResponse>> getProductSummary() {
+        var response = productService.getProductSummary();
+        return ResponseEntity.ok(ApiResponse.success(response));
+    }
+
+    @PostMapping("/seed")
+    public ResponseEntity<ApiResponse<String>> seedSampleData() {
+        productService.seedSampleData();
+        return ResponseEntity.ok(ApiResponse.success("Sample catalog data seeded successfully (52 products, categories, tax rates)"));
     }
 
     @GetMapping("/{id}")
@@ -42,6 +59,12 @@ public class ProductController {
     @DeleteMapping("/{id}")
     public ResponseEntity<ApiResponse<ProductResponse>> deleteProduct(@PathVariable Long id) {
         var response = productService.deleteProduct(id);
+        return ResponseEntity.ok(ApiResponse.success(response));
+    }
+
+    @PutMapping("/{id}/restore")
+    public ResponseEntity<ApiResponse<ProductResponse>> restoreProduct(@PathVariable Long id) {
+        var response = productService.restoreProduct(id);
         return ResponseEntity.ok(ApiResponse.success(response));
     }
 

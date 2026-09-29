@@ -19,6 +19,9 @@ public record ProductResponse(
         Long baseUnitId,
         String baseUnitName,
         String baseUnitSymbol,
+        Long taxRateId,
+        BigDecimal taxRate,
+        Boolean active,
         List<ProductUnitConversionResponse> conversions
 ) {
 }
