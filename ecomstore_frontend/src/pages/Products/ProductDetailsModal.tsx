@@ -2,7 +2,7 @@ import React from 'react';
 import { Modal } from '../../components/common/Modal';
 import { StockBadge } from '../../components/common/Badge';
 import type { Product } from '../../types/product';
-import { Tag, Hash, DollarSign, ArrowLeftRight, Scale, ArrowRight } from 'lucide-react';
+import { Tag, Hash, DollarSign, ArrowLeftRight, Scale, ArrowRight, Percent } from 'lucide-react';
 
 interface ProductDetailsModalProps {
   isOpen: boolean;
@@ -77,6 +77,25 @@ export const ProductDetailsModal: React.FC<ProductDetailsModalProps> = ({
           </div>
 
           <div className="flex items-start gap-3 rounded-xl border border-slate-100 bg-slate-50/50 p-4">
+            <Percent className="h-5 w-5 text-indigo-500 mt-0.5" />
+            <div>
+              <p className="text-xs font-semibold text-slate-500 uppercase tracking-wider">Tax Rate</p>
+              {product.taxRate !== undefined && product.taxRate !== null ? (
+                <div className="mt-0.5">
+                  <p className="text-sm font-bold text-slate-900 font-mono">
+                    {product.taxRate}% VAT / Tax
+                  </p>
+                  <p className="text-[11px] text-slate-500 mt-0.5">
+                    Gross: ${(Number(product.price) + (Number(product.price) * Number(product.taxRate)) / 100).toFixed(2)}
+                  </p>
+                </div>
+              ) : (
+                <p className="text-sm font-semibold text-slate-400 mt-0.5">Exempt / No Tax</p>
+              )}
+            </div>
+          </div>
+
+          <div className="flex items-start gap-3 rounded-xl border border-slate-100 bg-slate-50/50 p-4 sm:col-span-2">
             <DollarSign className="h-5 w-5 text-slate-400 mt-0.5" />
             <div>
               <p className="text-xs font-semibold text-slate-500 uppercase tracking-wider">

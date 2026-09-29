@@ -12,6 +12,9 @@ export interface Product {
   baseUnitId?: number;
   baseUnitName?: string;
   baseUnitSymbol?: string;
+  taxRateId?: number;
+  taxRate?: number;
+  active?: boolean;
   conversions?: ProductUnitConversion[];
 }
 
@@ -22,6 +25,7 @@ export interface ProductCreateRequest {
   price: number;
   categoryId: number;
   baseUnitId: number;
+  taxRateId?: number;
 }
 
 export interface ProductUpdateRequest {
@@ -31,6 +35,7 @@ export interface ProductUpdateRequest {
   price?: number;
   categoryId?: number;
   baseUnitId?: number;
+  taxRateId?: number;
 }
 
 export interface ProductFilterParams {
@@ -41,6 +46,7 @@ export interface ProductFilterParams {
   maxPrice?: number;
   minStock?: number;
   maxStock?: number;
+  active?: boolean;
 }
 
 export type ProductQueryParams = import('./api').PaginationParams & ProductFilterParams;

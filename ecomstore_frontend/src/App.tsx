@@ -6,21 +6,25 @@ import { DashboardPage } from './pages/Dashboard/DashboardPage';
 import { ProductsPage } from './pages/Products/ProductsPage';
 import { CategoriesPage } from './pages/Categories/CategoriesPage';
 import { UnitsPage } from './pages/Units/UnitsPage';
+import { TaxRatesPage } from './pages/TaxRates/TaxRatesPage';
 import { InventoryPage } from './pages/Inventory/InventoryPage';
 import { MovementsPage } from './pages/InventoryMovements/MovementsPage';
 import { ProductFormModal } from './pages/Products/ProductFormModal';
 import { CategoryFormModal } from './pages/Categories/CategoryFormModal';
+import { TaxRateFormModal } from './pages/TaxRates/TaxRateFormModal';
 import { CreateMovementModal } from './pages/InventoryMovements/CreateMovementModal';
 
 import { productService } from './api/productService';
 import { categoryService } from './api/categoryService';
 import { unitService } from './api/unitService';
+import { taxRateService } from './api/taxRateService';
 import { inventoryService } from './api/inventoryService';
 import { getErrorMessage } from './api/client';
 
 import type { Product, ProductCreateRequest, ProductUpdateRequest, ProductQueryParams, ProductSummary } from './types/product';
 import type { Category, CategoryRequest } from './types/category';
 import type { Unit, UnitRequest } from './types/unit';
+import type { TaxRate, TaxRateRequest } from './types/taxRate';
 import type { InventoryMovement, InventoryMovementRequest } from './types/inventory';
 import type { PagedResponse, PaginationParams } from './types/api';
 
@@ -31,6 +35,7 @@ export function App() {
   // Data states
   const [categories, setCategories] = useState<Category[]>([]);
   const [units, setUnits] = useState<Unit[]>([]);
+  const [taxRates, setTaxRates] = useState<TaxRate[]>([]);
   const [allProducts, setAllProducts] = useState<Product[]>([]);
   const [pagedProducts, setPagedProducts] = useState<PagedResponse<Product> | null>(null);
   const [pagedMovements, setPagedMovements] = useState<PagedResponse<InventoryMovement> | null>(null);
@@ -62,6 +67,7 @@ export function App() {
   // Global shortcut modals
   const [isQuickProductModalOpen, setIsQuickProductModalOpen] = useState(false);
   const [isQuickCategoryModalOpen, setIsQuickCategoryModalOpen] = useState(false);
+  const [isQuickTaxRateModalOpen, setIsQuickTaxRateModalOpen] = useState(false);
   const [isQuickMovementModalOpen, setIsQuickMovementModalOpen] = useState(false);
   const [targetProductForMovement, setTargetProductForMovement] = useState<Product | null>(null);
 
@@ -93,6 +99,16 @@ export function App() {
     try {
       const data = await unitService.getAllUnits();
       setUnits(data);
+    } catch (err) {
+      addToast('error', getErrorMessage(err));
+    }
+  }, [addToast]);
+
+  // Fetch all tax rates
+  const fetchTaxRates = useCallback(async () => {
+    try {
+      const data = await taxRateService.getAllTaxRates();
+      setTaxRates(data);
     } catch (err) {
       addToast('error', getErrorMessage(err));
     }
@@ -152,6 +168,7 @@ export function App() {
       await Promise.all([
         fetchCategories(),
         fetchUnits(),
+        fetchTaxRates(),
         fetchAllProducts(),
         fetchPagedProducts(productQueryParams),
         fetchPagedMovements(movementPagination),
@@ -175,6 +192,7 @@ export function App() {
       await Promise.all([
         fetchCategories(),
         fetchUnits(),
+        fetchTaxRates(),
         fetchAllProducts(),
         fetchPagedProducts(productQueryParams),
         fetchPagedMovements(movementPagination),
@@ -216,12 +234,42 @@ export function App() {
   const handleDeleteProduct = async (id: number) => {
     try {
       const deleted = await productService.deleteProduct(id);
-      addToast('success', `Product "${deleted.name}" deleted successfully.`);
+      addToast('success', `Product "${deleted.name}" archived successfully. Inventory movements & transactions preserved.`);
       await Promise.all([fetchAllProducts(), fetchPagedProducts(productQueryParams), fetchProductSummary()]);
     } catch (err) {
       const msg = getErrorMessage(err);
       addToast('error', msg);
       throw err;
+    }
+  };
+
+  const handleRestoreProduct = async (id: number) => {
+    try {
+      const restored = await productService.restoreProduct(id);
+      addToast('success', `Product "${restored.name}" restored to active catalog successfully.`);
+      await Promise.all([fetchAllProducts(), fetchPagedProducts(productQueryParams), fetchProductSummary()]);
+    } catch (err) {
+      const msg = getErrorMessage(err);
+      addToast('error', msg);
+      throw err;
+    }
+  };
+
+  const handleSeedData = async () => {
+    try {
+      const msg = await productService.seedSampleData();
+      addToast('success', msg);
+      await Promise.all([
+        fetchCategories(),
+        fetchUnits(),
+        fetchTaxRates(),
+        fetchAllProducts(),
+        fetchPagedProducts(productQueryParams),
+        fetchProductSummary(),
+      ]);
+    } catch (err) {
+      const msg = getErrorMessage(err);
+      addToast('error', msg);
     }
   };
 
@@ -299,6 +347,43 @@ export function App() {
     }
   };
 
+  // Tax Rate Actions
+  const handleCreateTaxRate = async (data: TaxRateRequest) => {
+    try {
+      const created = await taxRateService.createTaxRate(data);
+      addToast('success', `Tax rate ${created.rate}% created successfully.`);
+      await fetchTaxRates();
+    } catch (err) {
+      const msg = getErrorMessage(err);
+      addToast('error', msg);
+      throw err;
+    }
+  };
+
+  const handleUpdateTaxRate = async (id: number, data: TaxRateRequest) => {
+    try {
+      const updated = await taxRateService.updateTaxRate(id, data);
+      addToast('success', `Tax rate #${id} updated to ${updated.rate}%.`);
+      await fetchTaxRates();
+    } catch (err) {
+      const msg = getErrorMessage(err);
+      addToast('error', msg);
+      throw err;
+    }
+  };
+
+  const handleDeleteTaxRate = async (id: number) => {
+    try {
+      const msg = await taxRateService.deleteTaxRate(id);
+      addToast('success', msg);
+      await fetchTaxRates();
+    } catch (err) {
+      const msg = getErrorMessage(err);
+      addToast('error', msg);
+      throw err;
+    }
+  };
+
   // Movement Actions
   const handleCreateMovement = async (data: InventoryMovementRequest) => {
     try {
@@ -365,6 +450,7 @@ export function App() {
           products={allProducts}
           categories={categories}
           recentMovements={pagedMovements?.content || []}
+          taxRates={taxRates}
           summary={productSummary}
           isLoading={isInitialLoading}
           onNavigate={setCurrentTab}
@@ -375,6 +461,9 @@ export function App() {
             setIsQuickMovementModalOpen(true);
           }}
           onOpenMovementForProduct={handleOpenMovementForProduct}
+          onCreateTaxRate={handleCreateTaxRate}
+          onUpdateTaxRate={handleUpdateTaxRate}
+          onDeleteTaxRate={handleDeleteTaxRate}
         />
       )}
 
@@ -383,6 +472,7 @@ export function App() {
           pagedProducts={pagedProducts}
           categories={categories}
           units={units}
+          taxRates={taxRates}
           summary={productSummary}
           isLoading={isProductsLoading}
           queryParams={productQueryParams}
@@ -393,10 +483,12 @@ export function App() {
           onCreateProduct={handleCreateProduct}
           onUpdateProduct={handleUpdateProduct}
           onDeleteProduct={handleDeleteProduct}
+          onRestoreProduct={handleRestoreProduct}
           onOpenMovementModalForProduct={handleOpenMovementForProduct}
           onRefreshProducts={async () => {
             await Promise.all([fetchAllProducts(), fetchPagedProducts(productQueryParams), fetchProductSummary()]);
           }}
+          onSeedData={handleSeedData}
         />
       )}
 
@@ -419,6 +511,17 @@ export function App() {
           onCreateUnit={handleCreateUnit}
           onUpdateUnit={handleUpdateUnit}
           onDeleteUnit={handleDeleteUnit}
+        />
+      )}
+
+      {currentTab === 'tax-rates' && (
+        <TaxRatesPage
+          taxRates={taxRates}
+          isLoading={isInitialLoading}
+          onRefresh={fetchTaxRates}
+          onCreateTaxRate={handleCreateTaxRate}
+          onUpdateTaxRate={handleUpdateTaxRate}
+          onDeleteTaxRate={handleDeleteTaxRate}
         />
       )}
 
@@ -456,6 +559,7 @@ export function App() {
         }}
         categories={categories}
         units={units}
+        taxRates={taxRates}
       />
 
       <CategoryFormModal
@@ -463,6 +567,14 @@ export function App() {
         onClose={() => setIsQuickCategoryModalOpen(false)}
         onSubmit={async (data) => {
           await handleCreateCategory(data);
+        }}
+      />
+
+      <TaxRateFormModal
+        isOpen={isQuickTaxRateModalOpen}
+        onClose={() => setIsQuickTaxRateModalOpen(false)}
+        onSubmit={async (data) => {
+          await handleCreateTaxRate(data);
         }}
       />
 

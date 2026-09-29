@@ -32,6 +32,9 @@ export const productService = {
     if (params?.maxStock !== undefined && params?.maxStock !== null && !isNaN(params.maxStock)) {
       queryParams.maxStock = params.maxStock;
     }
+    if (params?.active !== undefined) {
+      queryParams.active = params.active ? 'true' : 'false';
+    }
 
     const res = await apiClient.get<ApiResponse<PagedResponse<Product>>>('/products', {
       params: queryParams,
@@ -62,5 +65,15 @@ export const productService = {
   async deleteProduct(id: number): Promise<Product> {
     const res = await apiClient.delete<ApiResponse<Product>>(`/products/${id}`);
     return res.data.data;
+  },
+
+  async restoreProduct(id: number): Promise<Product> {
+    const res = await apiClient.put<ApiResponse<Product>>(`/products/${id}/restore`);
+    return res.data.data;
+  },
+
+  async seedSampleData(): Promise<string> {
+    const res = await apiClient.post<ApiResponse<string>>('/products/seed');
+    return res.data.message || 'Sample data seeded successfully';
   },
 };

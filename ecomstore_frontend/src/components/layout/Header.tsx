@@ -40,6 +40,10 @@ export const Header: React.FC<HeaderProps> = ({
       title: 'Inventory Movements',
       subtitle: 'Track incoming restocks and outgoing orders dispatch',
     },
+    'tax-rates': {
+      title: 'Tax Rates Management',
+      subtitle: 'Configure sales tax percentages, VAT, and fiscal rates for products',
+    },
   };
 
   const current = titles[currentTab];

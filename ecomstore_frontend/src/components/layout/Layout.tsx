@@ -33,7 +33,7 @@ export const Layout: React.FC<LayoutProps> = ({
       />
 
       {/* Main content wrapper */}
-      <div className="flex-1 flex flex-col min-w-0 lg:pl-72">
+      <div className="flex-1 flex flex-col min-w-0 lg:pl-72 overflow-x-hidden">
         <Header
           currentTab={currentTab}
           onOpenSidebar={() => setIsSidebarOpen(true)}
@@ -41,7 +41,7 @@ export const Layout: React.FC<LayoutProps> = ({
           isRefreshing={isRefreshing}
         />
 
-        <main className="flex-1 p-4 sm:p-6 lg:p-8 max-w-7xl w-full mx-auto">
+        <main className="flex-1 p-4 sm:p-6 lg:p-8 max-w-7xl w-full mx-auto min-w-0">
           {children}
         </main>
       </div>

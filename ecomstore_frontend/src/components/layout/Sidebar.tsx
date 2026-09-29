@@ -7,10 +7,11 @@ import {
   ArrowLeftRight,
   Scale,
   Store,
-  X
+  X,
+  Percent
 } from 'lucide-react';
 
-export type NavTab = 'dashboard' | 'products' | 'categories' | 'units' | 'inventory' | 'movements';
+export type NavTab = 'dashboard' | 'products' | 'categories' | 'units' | 'inventory' | 'movements' | 'tax-rates';
 
 interface SidebarProps {
   currentTab: NavTab;
@@ -47,6 +48,11 @@ export const Sidebar: React.FC<SidebarProps> = ({
       id: 'units',
       label: 'Units & Measures',
       icon: <Scale className="h-5 w-5" />,
+    },
+    {
+      id: 'tax-rates',
+      label: 'Tax Rates',
+      icon: <Percent className="h-5 w-5" />,
     },
     {
       id: 'inventory',
