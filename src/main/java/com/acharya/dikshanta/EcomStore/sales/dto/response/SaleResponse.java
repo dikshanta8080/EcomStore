@@ -17,6 +17,7 @@ public record SaleResponse(
 ) {
     @Builder
     public record SaleItemResponse(
+            Long productId,
             String productName,
             BigDecimal unitPrice,
             Long quantity,

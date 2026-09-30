@@ -5,7 +5,6 @@ import java.util.List;
 
 public record SaleRequest(
         BigDecimal discountAmount,
-        BigDecimal discountPercentage,
         List<SaleItemRequest> saleItems
 
 ) {

@@ -25,6 +25,7 @@ public class SalesMapper {
         return saleItems.stream()
                 .map(saleItem -> SaleResponse.SaleItemResponse.builder()
                         .productName(saleItem.getProduct().getName())
+                        .productId(saleItem.getProduct().getId())
                         .unitPrice(saleItem.getUnitPrice())
                         .quantity(saleItem.getQuantity())
                         .total(saleItem.getTotal())
