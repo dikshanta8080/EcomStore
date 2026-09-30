@@ -1,0 +1,72 @@
+package com.acharya.dikshanta.retail_store.products.model;
+
+import com.acharya.dikshanta.retail_store.common.model.BaseEntity;
+import com.acharya.dikshanta.retail_store.inventory.model.Inventory;
+import com.acharya.dikshanta.retail_store.units.model.ProductUnitConversion;
+import com.acharya.dikshanta.retail_store.units.model.Unit;
+import jakarta.persistence.*;
+import lombok.*;
+import lombok.experimental.SuperBuilder;
+
+import java.math.BigDecimal;
+import java.util.ArrayList;
+import java.util.List;
+
+@Entity
+@Table(name = "products")
+@NoArgsConstructor
+@AllArgsConstructor
+@Getter
+@Setter
+@SuperBuilder
+public class Product extends BaseEntity {
+    @Column(name = "name", nullable = false, unique = true)
+    private String name;
+
+    @Column(name = "sku", nullable = false, unique = true)
+    private String sku;
+
+    @Column(name = "description", nullable = false)
+    private String description;
+
+    @Column(name = "price", nullable = false)
+    private BigDecimal price;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "category_id", nullable = false)
+    private Category category;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "base_unit_id", nullable = false)
+    private Unit baseUnit;
+
+    @OneToOne(mappedBy = "product", cascade = CascadeType.ALL, orphanRemoval = true)
+    private Inventory inventory;
+
+    @OneToMany(mappedBy = "product", cascade = CascadeType.ALL, orphanRemoval = true)
+    @Builder.Default
+    private List<ProductUnitConversion> unitConversions = new ArrayList<>();
+
+    @ManyToOne
+    @JoinColumn(name = "tax_rate_id")
+    private TaxRate taxRate;
+
+    @Column(name = "active", nullable = false)
+    @org.hibernate.annotations.ColumnDefault("true")
+    @Builder.Default
+    private Boolean active = true;
+
+    public void addUnitConversion(ProductUnitConversion conversion) {
+        if (conversion != null) {
+            this.unitConversions.add(conversion);
+            conversion.setProduct(this);
+        }
+    }
+
+    public void removeUnitConversion(ProductUnitConversion conversion) {
+        if (conversion != null) {
+            this.unitConversions.remove(conversion);
+            conversion.setProduct(null);
+        }
+    }
+}

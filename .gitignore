@@ -1,11 +1,23 @@
-HELP.md
-.gradle
-build/
-!gradle/wrapper/gradle-wrapper.jar
+### General ###
+.idea/
+.vscode/
+*.iws
+*.iml
+*.ipr
+*.local
+.DS_Store
+.env
+*.env
+
+### Backend (Spring Boot / Gradle) ###
+.gradle/
+**/.gradle/
+**/build/
+!**/gradle/wrapper/gradle-wrapper.jar
 !**/src/main/**/build/
 !**/src/test/**/build/
-
-### STS ###
+bin/
+out/
 .apt_generated
 .classpath
 .factorypath
@@ -13,26 +25,14 @@ build/
 .settings
 .springBeans
 .sts4-cache
-bin/
-!**/src/main/**/bin/
-!**/src/test/**/bin/
+HELP.md
+retail_store_backend/HELP.md
 
-### IntelliJ IDEA ###
-.idea
-*.iws
-*.iml
-*.ipr
-out/
-!**/src/main/**/out/
-!**/src/test/**/out/
-
-### NetBeans ###
-/nbproject/private/
-/nbbuild/
-/dist/
-/nbdist/
-/.nb-gradle/
-
-### VS Code ###
-.vscode/
-.env
+### Frontend (Node / Vite) ###
+retail_store_frontend/node_modules/
+retail_store_frontend/dist/
+retail_store_frontend/dist-ssr/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
