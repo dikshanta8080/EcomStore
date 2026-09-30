@@ -13,6 +13,7 @@ import { ProductFormModal } from './pages/Products/ProductFormModal';
 import { CategoryFormModal } from './pages/Categories/CategoryFormModal';
 import { TaxRateFormModal } from './pages/TaxRates/TaxRateFormModal';
 import { CreateMovementModal } from './pages/InventoryMovements/CreateMovementModal';
+import { PosPage } from './pages/POS/PosPage';
 
 import { productService } from './api/productService';
 import { categoryService } from './api/categoryService';
@@ -391,7 +392,7 @@ export function App() {
       const actionName = created.movementType === 'IN' ? 'Received' : 'Dispatched';
       addToast(
         'success',
-        `${actionName} ${created.quantity} ${created.unitSymbol} (${created.baseQuantity} ${created.baseUnitSymbol}) for "${created.productName}". Total: $${Number(created.totalAmount).toFixed(2)}`
+        `${actionName} ${created.quantity} ${created.unitSymbol} (${created.baseQuantity} ${created.baseUnitSymbol}) for "${created.productName}". Total: Rs. ${Number(created.totalAmount).toFixed(2)}`
       );
       // Refresh inventory and movements
       await Promise.all([
@@ -464,6 +465,15 @@ export function App() {
           onCreateTaxRate={handleCreateTaxRate}
           onUpdateTaxRate={handleUpdateTaxRate}
           onDeleteTaxRate={handleDeleteTaxRate}
+        />
+      )}
+
+      {currentTab === 'pos' && (
+        <PosPage
+          products={allProducts}
+          categories={categories}
+          onRefreshData={handleRefresh}
+          addToast={addToast}
         />
       )}
 

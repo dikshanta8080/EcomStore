@@ -27,7 +27,6 @@ export const ProductConversionsModal: React.FC<ProductConversionsModalProps> = (
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
 
-  // New conversion form state
   const [newUnitId, setNewUnitId] = useState<number | ''>('');
   const [newFactor, setNewFactor] = useState<string>('1');
 
@@ -59,13 +58,11 @@ export const ProductConversionsModal: React.FC<ProductConversionsModalProps> = (
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isOpen, product]);
 
-  // Units available to add (not the base unit, and not already configured)
   const existingUnitIds = new Set(conversions.map((c) => c.unitId));
   if (product?.baseUnitId) {
     existingUnitIds.add(product.baseUnitId);
   }
   const availableUnits = units.filter((u) => !existingUnitIds.has(u.id));
-
   const selectedUnit = units.find((u) => u.id === Number(newUnitId));
 
   const handleAddConversion = async (e: React.FormEvent) => {
@@ -120,7 +117,7 @@ export const ProductConversionsModal: React.FC<ProductConversionsModalProps> = (
     setSuccess(null);
     try {
       await productUnitConversionService.deleteConversion(product.id, conversionId);
-      setSuccess('Conversion removed successfully');
+      setSuccess('Conversion removed');
       await loadConversions();
       onConversionUpdated?.();
     } catch (err) {
@@ -134,40 +131,34 @@ export const ProductConversionsModal: React.FC<ProductConversionsModalProps> = (
     <Modal
       isOpen={isOpen}
       onClose={onClose}
-      title={`Unit Conversions: ${product.name}`}
-      subtitle={`Configure packaging & transaction units for SKU: ${product.sku}`}
-      maxWidth="lg"
+      title="Unit Conversions"
+      subtitle={`${product.name} (SKU: ${product.sku})`}
+      maxWidth="md"
     >
-      <div className="space-y-6">
-        {/* Base Unit Card Banner */}
-        <div className="flex items-center justify-between p-4 rounded-xl bg-slate-50 border border-slate-200">
-          <div className="flex items-center gap-3">
-            <div className="p-2.5 rounded-lg bg-indigo-50 text-indigo-600">
-              <Scale className="h-5 w-5" />
-            </div>
+      <div className="space-y-4">
+        {/* Base Unit Info */}
+        <div className="flex items-center justify-between p-3 rounded-md bg-slate-50 border border-slate-200 text-xs">
+          <div className="flex items-center gap-2">
+            <Scale className="h-4 w-4 text-slate-500" />
             <div>
-              <div className="text-xs font-bold text-slate-500 uppercase tracking-wider">
-                Product Base Unit (Inventory Standard)
-              </div>
-              <div className="text-base font-bold text-slate-900 mt-0.5">
-                {baseUnitName} ({baseUnitSymbol})
-              </div>
+              <span className="text-slate-400 block text-[10px]">Standard Base Unit</span>
+              <span className="font-semibold text-slate-900">{baseUnitName} ({baseUnitSymbol})</span>
             </div>
           </div>
-          <span className="px-3 py-1 rounded-full text-xs font-bold bg-indigo-100 text-indigo-700">
-            Standard: 1 {baseUnitSymbol} = 1.0 {baseUnitSymbol}
+          <span className="font-mono text-slate-600 bg-white border border-slate-200 px-2 py-0.5 rounded">
+            1 {baseUnitSymbol} = 1.0 {baseUnitSymbol}
           </span>
         </div>
 
         {error && (
-          <div className="flex items-start gap-2.5 rounded-xl bg-rose-50 p-3.5 text-xs font-medium text-rose-700 ring-1 ring-rose-200">
+          <div className="flex items-start gap-2 rounded-md bg-rose-50 border border-rose-200 p-2.5 text-xs text-rose-700">
             <AlertCircle className="h-4 w-4 shrink-0 text-rose-500 mt-0.5" />
             <span>{error}</span>
           </div>
         )}
 
         {success && (
-          <div className="flex items-start gap-2.5 rounded-xl bg-emerald-50 p-3.5 text-xs font-medium text-emerald-700 ring-1 ring-emerald-200">
+          <div className="flex items-start gap-2 rounded-md bg-emerald-50 border border-emerald-200 p-2.5 text-xs text-emerald-700">
             <CheckCircle2 className="h-4 w-4 shrink-0 text-emerald-500 mt-0.5" />
             <span>{success}</span>
           </div>
@@ -175,49 +166,48 @@ export const ProductConversionsModal: React.FC<ProductConversionsModalProps> = (
 
         {/* Existing Conversions List */}
         <div>
-          <h4 className="text-xs font-bold text-slate-700 uppercase tracking-wider mb-3">
-            Configured Unit Conversions
+          <h4 className="text-xs font-semibold text-slate-700 mb-2">
+            Configured Conversions
           </h4>
 
           {isLoading ? (
-            <div className="py-6 text-center text-sm text-slate-400">Loading conversions...</div>
+            <div className="py-4 text-center text-xs text-slate-400">Loading conversions...</div>
           ) : conversions.length === 0 ? (
-            <div className="rounded-xl border border-dashed border-slate-200 p-6 text-center text-xs text-slate-500">
-              No additional unit conversions configured for this product yet.
-              Transactions will only be allowed in the base unit ({baseUnitSymbol}).
+            <div className="rounded-md border border-dashed border-slate-300 p-4 text-center text-xs text-slate-400">
+              No packaging unit conversions configured for this product.
             </div>
           ) : (
-            <div className="divide-y divide-slate-100 rounded-xl border border-slate-200 bg-white overflow-hidden">
+            <div className="divide-y divide-slate-100 rounded-md border border-slate-200 bg-white overflow-hidden text-xs">
               {conversions.map((conv) => (
                 <div
                   key={conv.id}
-                  className="flex items-center justify-between p-3.5 hover:bg-slate-50/70 transition-colors"
+                  className="flex items-center justify-between p-2.5 hover:bg-slate-50 transition-colors"
                 >
-                  <div className="flex items-center gap-3">
+                  <div className="flex items-center gap-2.5">
                     <button
                       type="button"
                       onClick={() => handleToggleActive(conv)}
-                      title={conv.active ? 'Active (click to deactivate)' : 'Inactive (click to activate)'}
-                      className="text-slate-400 hover:text-indigo-600 transition-colors"
+                      title={conv.active ? 'Active' : 'Inactive'}
+                      className="text-slate-400 hover:text-slate-700"
                     >
                       {conv.active ? (
-                        <CheckCircle2 className="h-5 w-5 text-emerald-600" />
+                        <CheckCircle2 className="h-4 w-4 text-emerald-600" />
                       ) : (
-                        <XCircle className="h-5 w-5 text-slate-300" />
+                        <XCircle className="h-4 w-4 text-slate-300" />
                       )}
                     </button>
                     <div>
-                      <div className="text-sm font-bold text-slate-900 flex items-center gap-1.5">
+                      <div className="font-semibold text-slate-900 flex items-center gap-1">
                         <span>1 {conv.unitSymbol}</span>
-                        <ArrowRight className="h-3.5 w-3.5 text-slate-400" />
-                        <span className="text-indigo-600">
+                        <ArrowRight className="h-3 w-3 text-slate-400" />
+                        <span className="text-indigo-600 font-mono">
                           {conv.conversionFactor} {baseUnitSymbol}
                         </span>
                       </div>
-                      <div className="text-xs text-slate-400">
+                      <div className="text-[11px] text-slate-400">
                         {conv.unitName} ({conv.unitType}) &middot;{' '}
                         {conv.active ? (
-                          <span className="text-emerald-600 font-semibold">Active</span>
+                          <span className="text-emerald-700 font-medium">Active</span>
                         ) : (
                           <span className="text-slate-400">Inactive</span>
                         )}
@@ -228,10 +218,10 @@ export const ProductConversionsModal: React.FC<ProductConversionsModalProps> = (
                   <button
                     type="button"
                     onClick={() => handleDeleteConversion(conv.id)}
-                    className="rounded-lg p-1.5 text-slate-400 hover:bg-rose-50 hover:text-rose-600 transition-colors"
+                    className="rounded p-1 text-slate-400 hover:text-rose-600 hover:bg-rose-50 transition-colors"
                     title="Delete Conversion"
                   >
-                    <Trash2 className="h-4 w-4" />
+                    <Trash2 className="h-3.5 w-3.5" />
                   </button>
                 </div>
               ))}
@@ -242,25 +232,25 @@ export const ProductConversionsModal: React.FC<ProductConversionsModalProps> = (
         {/* Add Conversion Form */}
         <form
           onSubmit={handleAddConversion}
-          className="rounded-xl border border-indigo-100 bg-indigo-50/30 p-4 space-y-4"
+          className="rounded-md border border-slate-200 bg-slate-50 p-3 space-y-2.5 text-xs"
         >
-          <div className="text-xs font-bold text-indigo-950 uppercase tracking-wider flex items-center gap-1.5">
-            <Plus className="h-4 w-4 text-indigo-600" />
-            Add New Unit Conversion for {product.name}
+          <div className="font-semibold text-slate-800 flex items-center gap-1">
+            <Plus className="h-3.5 w-3.5 text-indigo-600" />
+            Add Conversion Rule
           </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
             <div>
-              <label className="block text-[11px] font-bold text-slate-700 uppercase tracking-wider mb-1">
+              <label className="block text-[11px] text-slate-500 mb-1">
                 Transaction Unit <span className="text-rose-500">*</span>
               </label>
               <select
                 required
                 value={newUnitId}
                 onChange={(e) => setNewUnitId(Number(e.target.value))}
-                className="w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm text-slate-800 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20 focus:outline-none"
+                className="w-full rounded-md border border-slate-300 bg-white px-2.5 py-1 text-xs text-slate-800 focus:border-indigo-600 focus:outline-none"
               >
-                <option value="" disabled>Select unit (e.g. BORA, PACKET)</option>
+                <option value="" disabled>Select unit</option>
                 {availableUnits.map((u) => (
                   <option key={u.id} value={u.id}>
                     {u.name} ({u.symbol}) — {u.unitType}
@@ -270,8 +260,8 @@ export const ProductConversionsModal: React.FC<ProductConversionsModalProps> = (
             </div>
 
             <div>
-              <label className="block text-[11px] font-bold text-slate-700 uppercase tracking-wider mb-1">
-                How many {baseUnitSymbol} per unit? <span className="text-rose-500">*</span>
+              <label className="block text-[11px] text-slate-500 mb-1">
+                Base Units per packaging <span className="text-rose-500">*</span>
               </label>
               <input
                 type="number"
@@ -280,40 +270,36 @@ export const ProductConversionsModal: React.FC<ProductConversionsModalProps> = (
                 required
                 value={newFactor}
                 onChange={(e) => setNewFactor(e.target.value)}
-                placeholder="e.g. 50 (for 1 BORA = 50 KG)"
-                className="w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm text-slate-800 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20 focus:outline-none"
+                placeholder="e.g. 25"
+                className="w-full rounded-md border border-slate-300 bg-white px-2.5 py-1 text-xs text-slate-800 focus:border-indigo-600 focus:outline-none font-mono"
               />
             </div>
           </div>
 
           {selectedUnit && (
-            <div className="rounded-lg bg-white border border-indigo-100 p-2.5 text-xs text-indigo-900 font-medium">
-              Conversion rule: <span className="font-bold">1 {selectedUnit.symbol}</span> will equal{' '}
-              <span className="font-bold text-indigo-600">
-                {newFactor || 1} {baseUnitSymbol}
-              </span>{' '}
-              in stock inventory.
+            <div className="text-[11px] text-slate-500">
+              Rule: 1 {selectedUnit.symbol} = <span className="font-mono font-bold text-slate-800">{newFactor || 1} {baseUnitSymbol}</span> in warehouse stock.
             </div>
           )}
 
-          <div className="flex justify-end">
+          <div className="flex justify-end pt-1">
             <button
               type="submit"
               disabled={isSubmitting || !newUnitId}
-              className="inline-flex items-center gap-1.5 rounded-xl bg-indigo-600 px-4 py-2 text-xs font-bold text-white shadow-xs hover:bg-indigo-700 transition-all disabled:opacity-50"
+              className="inline-flex items-center gap-1 rounded-md bg-indigo-600 px-3 py-1 text-xs font-semibold text-white hover:bg-indigo-700 transition-colors disabled:opacity-50"
             >
-              {isSubmitting ? 'Adding...' : 'Save Conversion'}
+              {isSubmitting ? 'Saving...' : 'Add Rule'}
             </button>
           </div>
         </form>
 
-        <div className="flex justify-end pt-2">
+        <div className="flex justify-end border-t border-slate-100 pt-3">
           <button
             type="button"
             onClick={onClose}
-            className="rounded-xl border border-slate-200 bg-white px-4 py-2 text-sm font-semibold text-slate-700 hover:bg-slate-50 transition-colors"
+            className="rounded-md border border-slate-300 bg-white px-3.5 py-1.5 text-xs font-medium text-slate-700 hover:bg-slate-50 transition-colors"
           >
-            Close
+            Done
           </button>
         </div>
       </div>

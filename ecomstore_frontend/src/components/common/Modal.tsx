@@ -43,31 +43,31 @@ export const Modal: React.FC<ModalProps> = ({
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-6">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-6 overflow-y-auto">
       {/* Backdrop */}
       <div
-        className="fixed inset-0 bg-slate-900/40 backdrop-blur-xs transition-opacity"
+        className="fixed inset-0 bg-slate-900/40 transition-opacity"
         onClick={onClose}
       />
 
       {/* Modal Dialog */}
       <div
-        className={`relative z-10 w-full ${maxWidthClasses[maxWidth]} rounded-2xl bg-white shadow-2xl ring-1 ring-slate-900/10 overflow-hidden transform transition-all duration-200 animate-in fade-in zoom-in-95`}
+        className={`relative z-10 w-full ${maxWidthClasses[maxWidth]} rounded-lg bg-white border border-slate-200 shadow-xl overflow-hidden`}
       >
-        <div className="flex items-center justify-between border-b border-slate-100 px-6 py-4.5 bg-slate-50/50">
+        <div className="flex items-center justify-between border-b border-slate-200 dark:border-slate-800 px-6 py-4 bg-white dark:bg-slate-900">
           <div>
-            <h2 className="text-lg font-bold text-slate-900">{title}</h2>
-            {subtitle && <p className="text-xs text-slate-500 mt-0.5">{subtitle}</p>}
+            <h2 className="text-base font-semibold text-slate-900 dark:text-white">{title}</h2>
+            {subtitle && <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">{subtitle}</p>}
           </div>
           <button
             onClick={onClose}
-            className="rounded-lg p-1.5 text-slate-400 hover:bg-slate-100 hover:text-slate-600 transition-colors"
+            className="rounded-md p-1.5 text-slate-400 hover:bg-slate-100 hover:text-slate-700 dark:hover:bg-slate-800 dark:hover:text-slate-200 transition-colors"
             title="Close dialog"
           >
-            <X className="h-5 w-5" />
+            <X className="h-4 w-4" />
           </button>
         </div>
-        <div className="max-h-[calc(85vh-8rem)] overflow-y-auto p-6">
+        <div className="max-h-[calc(85vh-7rem)] overflow-y-auto p-6">
           {children}
         </div>
       </div>

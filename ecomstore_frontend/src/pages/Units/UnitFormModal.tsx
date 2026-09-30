@@ -11,10 +11,10 @@ interface UnitFormModalProps {
 }
 
 const UNIT_TYPES: { value: UnitType; label: string; desc: string }[] = [
-  { value: 'WEIGHT', label: 'Weight', desc: 'e.g. KG, GRAM, TON' },
-  { value: 'VOLUME', label: 'Volume', desc: 'e.g. LITER, ML' },
-  { value: 'COUNT', label: 'Count / Packaging', desc: 'e.g. PIECE, PACKET, BOX, CARTON' },
-  { value: 'OTHER', label: 'Custom / Other', desc: 'e.g. BORA, SACK, BAG' },
+  { value: 'WEIGHT', label: 'Weight', desc: 'e.g. KG, Gram, Ton' },
+  { value: 'VOLUME', label: 'Volume', desc: 'e.g. Liter, ML' },
+  { value: 'COUNT', label: 'Count / Pack', desc: 'e.g. Piece, Packet, Box' },
+  { value: 'OTHER', label: 'Custom', desc: 'e.g. Bora, Sack, Bundle' },
 ];
 
 const UnitFormContent: React.FC<{
@@ -53,15 +53,15 @@ const UnitFormContent: React.FC<{
   };
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-4">
+    <form onSubmit={handleSubmit} className="space-y-3.5">
       {error && (
-        <div className="rounded-xl bg-rose-50 p-3.5 text-xs font-medium text-rose-700 ring-1 ring-rose-200">
+        <div className="rounded-md bg-rose-50 border border-rose-200 p-3 text-xs text-rose-700">
           {error}
         </div>
       )}
 
       <div>
-        <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">
+        <label className="block text-xs font-medium text-slate-700 mb-1">
           Unit Name <span className="text-rose-500">*</span>
         </label>
         <input
@@ -69,13 +69,13 @@ const UnitFormContent: React.FC<{
           required
           value={name}
           onChange={(e) => setName(e.target.value)}
-          placeholder="e.g. Kilogram, Bora / Sack, Bottle"
-          className="w-full rounded-xl border border-slate-200 bg-white px-3.5 py-2.5 text-sm text-slate-800 shadow-2xs placeholder:text-slate-400 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20 focus:outline-none transition-all"
+          placeholder="e.g. Kilogram, Piece, Sack"
+          className="w-full rounded-md border border-slate-300 bg-white px-3 py-1.5 text-xs text-slate-800 placeholder:text-slate-400 focus:border-indigo-600 focus:outline-none"
         />
       </div>
 
       <div>
-        <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">
+        <label className="block text-xs font-medium text-slate-700 mb-1">
           Symbol / Code <span className="text-rose-500">*</span>
         </label>
         <input
@@ -83,50 +83,50 @@ const UnitFormContent: React.FC<{
           required
           value={symbol}
           onChange={(e) => setSymbol(e.target.value)}
-          placeholder="e.g. KG, BORA, L, PC, CTN"
-          className="w-full rounded-xl border border-slate-200 bg-white px-3.5 py-2.5 text-sm text-slate-800 font-mono uppercase shadow-2xs placeholder:text-slate-400 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20 focus:outline-none transition-all"
+          placeholder="e.g. KG, PC, BORA, L"
+          className="w-full rounded-md border border-slate-300 bg-white px-3 py-1.5 text-xs font-mono uppercase text-slate-800 placeholder:text-slate-400 focus:border-indigo-600 focus:outline-none"
         />
       </div>
 
       <div>
-        <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">
+        <label className="block text-xs font-medium text-slate-700 mb-1">
           Unit Dimension / Type <span className="text-rose-500">*</span>
         </label>
-        <div className="grid grid-cols-2 gap-2.5">
+        <div className="grid grid-cols-2 gap-2">
           {UNIT_TYPES.map((t) => (
             <button
               key={t.value}
               type="button"
               onClick={() => setUnitType(t.value)}
-              className={`p-3 rounded-xl border text-left transition-all ${
+              className={`p-2.5 rounded-md border text-left transition-colors ${
                 unitType === t.value
-                  ? 'border-indigo-600 bg-indigo-50/70 ring-2 ring-indigo-500/20 shadow-xs'
-                  : 'border-slate-200 bg-white hover:bg-slate-50'
+                  ? 'border-indigo-600 bg-indigo-50/60 text-indigo-900'
+                  : 'border-slate-200 bg-white hover:bg-slate-50 text-slate-700'
               }`}
             >
-              <div className="text-xs font-bold text-slate-900">{t.label}</div>
-              <div className="text-[10px] text-slate-500 mt-0.5">{t.desc}</div>
+              <div className="text-xs font-semibold">{t.label}</div>
+              <div className="text-[10px] text-slate-400 mt-0.5">{t.desc}</div>
             </button>
           ))}
         </div>
       </div>
 
-      <div className="flex items-center justify-end gap-3 border-t border-slate-100 pt-4 mt-6">
+      <div className="flex items-center justify-end gap-2.5 border-t border-slate-100 pt-3.5 mt-5">
         <button
           type="button"
           onClick={onClose}
           disabled={isLoading}
-          className="rounded-xl border border-slate-200 bg-white px-4 py-2.5 text-sm font-semibold text-slate-700 shadow-2xs hover:bg-slate-50 transition-colors disabled:opacity-50"
+          className="rounded-md border border-slate-300 bg-white px-3 py-1.5 text-xs font-medium text-slate-700 hover:bg-slate-50 transition-colors disabled:opacity-50"
         >
           Cancel
         </button>
         <button
           type="submit"
           disabled={isLoading}
-          className="inline-flex items-center gap-2 rounded-xl bg-indigo-600 px-5 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-indigo-700 transition-all active:scale-[0.98] disabled:opacity-50"
+          className="inline-flex items-center gap-1.5 rounded-md bg-indigo-600 px-3.5 py-1.5 text-xs font-semibold text-white hover:bg-indigo-700 transition-colors disabled:opacity-50"
         >
           {isLoading && (
-            <div className="h-4 w-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+            <div className="h-3.5 w-3.5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
           )}
           {unit ? 'Save Changes' : 'Create Unit'}
         </button>
@@ -146,8 +146,8 @@ export const UnitFormModal: React.FC<UnitFormModalProps> = ({
     <Modal
       isOpen={isOpen}
       onClose={onClose}
-      title={unit ? 'Edit Unit' : 'Create New Unit'}
-      subtitle={unit ? `Updating unit ${unit.symbol}` : 'Add a standard or custom unit for inventory transactions'}
+      title={unit ? 'Edit Unit' : 'New Unit'}
+      subtitle={unit ? `Updating unit ${unit.symbol}` : 'Add a measurement or packaging unit'}
       maxWidth="md"
     >
       <UnitFormContent

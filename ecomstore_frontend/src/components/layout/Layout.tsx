@@ -22,7 +22,7 @@ export const Layout: React.FC<LayoutProps> = ({
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 
   return (
-    <div className="min-h-screen bg-slate-50/75 flex">
+    <div className="min-h-screen bg-slate-50 flex">
       {/* Sidebar */}
       <Sidebar
         currentTab={currentTab}
@@ -33,7 +33,7 @@ export const Layout: React.FC<LayoutProps> = ({
       />
 
       {/* Main content wrapper */}
-      <div className="flex-1 flex flex-col min-w-0 lg:pl-72 overflow-x-hidden">
+      <div className="flex-1 flex flex-col min-w-0 lg:pl-64 overflow-x-hidden">
         <Header
           currentTab={currentTab}
           onOpenSidebar={() => setIsSidebarOpen(true)}
@@ -41,7 +41,7 @@ export const Layout: React.FC<LayoutProps> = ({
           isRefreshing={isRefreshing}
         />
 
-        <main className="flex-1 p-4 sm:p-6 lg:p-8 max-w-7xl w-full mx-auto min-w-0">
+        <main className="flex-1 px-4 sm:px-6 py-6 max-w-7xl w-full mx-auto min-w-0">
           {children}
         </main>
       </div>

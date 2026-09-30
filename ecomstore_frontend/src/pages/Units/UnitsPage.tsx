@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Plus, Scale, Edit2, Trash2, Tag } from 'lucide-react';
+import { Plus, Scale, Edit2, Trash2 } from 'lucide-react';
 import type { Unit, UnitRequest, UnitType } from '../../types/unit';
 import { LoadingSpinner } from '../../components/common/LoadingSpinner';
 import { EmptyState } from '../../components/common/EmptyState';
@@ -63,50 +63,40 @@ export const UnitsPage: React.FC<UnitsPageProps> = ({
     switch (type) {
       case 'WEIGHT':
         return (
-          <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200">
+          <span className="inline-flex items-center px-2 py-0.5 rounded text-[11px] font-medium bg-emerald-50 text-emerald-700 border border-emerald-200/60">
             Weight
           </span>
         );
       case 'VOLUME':
         return (
-          <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-semibold bg-blue-50 text-blue-700 border border-blue-200">
+          <span className="inline-flex items-center px-2 py-0.5 rounded text-[11px] font-medium bg-blue-50 text-blue-700 border border-blue-200/60">
             Volume
           </span>
         );
       case 'COUNT':
         return (
-          <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-semibold bg-purple-50 text-purple-700 border border-purple-200">
+          <span className="inline-flex items-center px-2 py-0.5 rounded text-[11px] font-medium bg-purple-50 text-purple-700 border border-purple-200/60">
             Count / Pkg
           </span>
         );
       case 'OTHER':
         return (
-          <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-semibold bg-amber-50 text-amber-700 border border-amber-200">
-            Custom / Other
+          <span className="inline-flex items-center px-2 py-0.5 rounded text-[11px] font-medium bg-slate-100 text-slate-700 border border-slate-200/60">
+            Custom
           </span>
         );
     }
   };
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4">
       {/* Top Header & Actions */}
-      <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-4">
-        {/* Unit Type Filters */}
-        <div className="inline-flex rounded-xl bg-slate-200/70 p-1 text-xs font-semibold text-slate-600">
-          {(['ALL', 'WEIGHT', 'VOLUME', 'COUNT', 'OTHER'] as const).map((type) => (
-            <button
-              key={type}
-              onClick={() => setSelectedFilter(type)}
-              className={`rounded-lg px-3 py-1.5 transition-all ${
-                selectedFilter === type
-                  ? 'bg-white text-slate-900 shadow-2xs font-bold'
-                  : 'hover:text-slate-900'
-              }`}
-            >
-              {type === 'ALL' ? 'All Units' : type.charAt(0) + type.slice(1).toLowerCase()}
-            </button>
-          ))}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+        <div>
+          <h1 className="text-lg font-bold text-slate-900 tracking-tight">Units of Measure</h1>
+          <p className="text-xs text-slate-500 mt-0.5">
+            Configure measurement standards (KG, Liter, Piece) and packaging units
+          </p>
         </div>
 
         <button
@@ -114,78 +104,92 @@ export const UnitsPage: React.FC<UnitsPageProps> = ({
             setEditingUnit(null);
             setIsModalOpen(true);
           }}
-          className="inline-flex items-center justify-center gap-2 rounded-xl bg-indigo-600 px-4 py-2.5 text-sm font-semibold text-white shadow-xs hover:bg-indigo-700 transition-all active:scale-[0.98]"
+          className="inline-flex items-center gap-1.5 rounded-md bg-indigo-600 px-3 py-1.5 text-xs font-semibold text-white shadow-xs hover:bg-indigo-700 transition-colors self-start sm:self-auto"
         >
-          <Plus className="h-4 w-4" />
+          <Plus className="h-3.5 w-3.5" />
           Add Unit
         </button>
       </div>
 
+      {/* Filter Tabs */}
+      <div className="flex items-center gap-1 border-b border-slate-200 overflow-x-auto text-xs font-medium">
+        {(['ALL', 'WEIGHT', 'VOLUME', 'COUNT', 'OTHER'] as const).map((type) => (
+          <button
+            key={type}
+            onClick={() => setSelectedFilter(type)}
+            className={`px-3 py-2 border-b-2 font-medium transition-colors whitespace-nowrap ${
+              selectedFilter === type
+                ? 'border-indigo-600 text-indigo-600 font-semibold'
+                : 'border-transparent text-slate-600 hover:text-slate-900'
+            }`}
+          >
+            {type === 'ALL' ? 'All Units' : type.charAt(0) + type.slice(1).toLowerCase()}
+          </button>
+        ))}
+      </div>
+
       {/* Main Table Card */}
-      <div className="rounded-2xl border border-slate-200/80 bg-white shadow-2xs overflow-hidden">
+      <div className="rounded-lg border border-slate-200 bg-white overflow-hidden shadow-xs">
         {isLoading ? (
           <LoadingSpinner message="Fetching units..." />
         ) : filteredUnits.length === 0 ? (
           <div className="p-8">
             <EmptyState
-              title={selectedFilter !== 'ALL' ? `No ${selectedFilter} units found` : 'No units defined yet'}
-              description="Create standard units (KG, Liter, Piece) or custom units (Bora, Packet, Box) to manage inventory."
+              title={selectedFilter !== 'ALL' ? `No ${selectedFilter.toLowerCase()} units found` : 'No units defined'}
+              description="Define standard units to enable conversion and packaging management."
               actionText="Add New Unit"
               onAction={() => {
                 setEditingUnit(null);
                 setIsModalOpen(true);
               }}
-              icon={<Scale className="h-7 w-7 text-indigo-500" />}
+              icon={<Scale className="h-6 w-6 text-slate-400" />}
             />
           </div>
         ) : (
           <div className="overflow-x-auto">
-            <table className="w-full text-left text-sm">
-              <thead className="border-b border-slate-100 bg-slate-50/75 text-[11px] font-bold uppercase tracking-wider text-slate-500">
+            <table className="w-full text-left text-xs">
+              <thead className="bg-slate-50 border-b border-slate-200 text-slate-500 font-semibold uppercase tracking-wider">
                 <tr>
-                  <th className="px-6 py-3.5">ID</th>
-                  <th className="px-6 py-3.5">Unit Name</th>
-                  <th className="px-6 py-3.5">Symbol</th>
-                  <th className="px-6 py-3.5">Dimension Type</th>
-                  <th className="px-6 py-3.5 text-right">Actions</th>
+                  <th className="py-3 px-4 w-20">ID</th>
+                  <th className="py-3 px-4">Unit Name</th>
+                  <th className="py-3 px-4">Symbol</th>
+                  <th className="py-3 px-4">Type</th>
+                  <th className="py-3 px-4 text-right w-24">Actions</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-slate-100">
-                {filteredUnits.map((u) => (
-                  <tr key={u.id} className="hover:bg-slate-50/60 transition-colors">
-                    <td className="px-6 py-4 font-mono text-xs font-semibold text-slate-400">
-                      #{u.id}
+              <tbody className="divide-y divide-slate-100 text-slate-700">
+                {filteredUnits.map((unit) => (
+                  <tr key={unit.id} className="hover:bg-slate-50/70 transition-colors">
+                    <td className="py-3 px-4 font-mono text-slate-400 font-medium">
+                      #{unit.id}
                     </td>
-                    <td className="px-6 py-4">
-                      <div className="font-semibold text-slate-900 flex items-center gap-2">
-                        <Tag className="h-4 w-4 text-slate-400" />
-                        <span>{u.name}</span>
-                      </div>
+                    <td className="py-3 px-4 font-semibold text-slate-900">
+                      {unit.name}
                     </td>
-                    <td className="px-6 py-4">
-                      <span className="font-mono font-bold px-2 py-1 rounded-md bg-slate-100 text-slate-800 text-xs border border-slate-200">
-                        {u.symbol}
-                      </span>
+                    <td className="py-3 px-4 font-mono text-slate-600 font-bold">
+                      {unit.symbol}
                     </td>
-                    <td className="px-6 py-4">{getTypeBadge(u.unitType)}</td>
-                    <td className="px-6 py-4 text-right">
-                      <div className="inline-flex items-center gap-1.5">
+                    <td className="py-3 px-4">
+                      {getTypeBadge(unit.unitType)}
+                    </td>
+                    <td className="py-3 px-4 text-right">
+                      <div className="inline-flex items-center gap-1">
                         <button
                           onClick={() => {
-                            setEditingUnit(u);
+                            setEditingUnit(unit);
                             setIsModalOpen(true);
                           }}
-                          className="rounded-lg p-1.5 text-slate-400 hover:bg-indigo-50 hover:text-indigo-600 transition-colors"
+                          className="rounded p-1 text-slate-500 hover:text-slate-900 hover:bg-slate-100 transition-colors"
                           title="Edit Unit"
                         >
-                          <Edit2 className="h-4 w-4" />
+                          <Edit2 className="h-3.5 w-3.5" />
                         </button>
                         <button
-                          onClick={() => setDeletingUnit(u)}
-                          className="rounded-lg p-1.5 text-slate-400 hover:bg-rose-50 hover:text-rose-600 transition-colors"
+                          onClick={() => setDeletingUnit(unit)}
+                          className="rounded p-1 text-slate-400 hover:text-rose-600 hover:bg-rose-50 transition-colors"
                           title="Delete Unit"
                         >
-                          <Trash2 className="h-4 w-4" />
+                          <Trash2 className="h-3.5 w-3.5" />
                         </button>
                       </div>
                     </td>
@@ -197,7 +201,7 @@ export const UnitsPage: React.FC<UnitsPageProps> = ({
         )}
       </div>
 
-      {/* Create / Edit Modal */}
+      {/* Unit Form Modal */}
       <UnitFormModal
         isOpen={isModalOpen}
         onClose={() => {
@@ -211,14 +215,14 @@ export const UnitsPage: React.FC<UnitsPageProps> = ({
 
       {/* Delete Confirmation Modal */}
       <ConfirmModal
-        isOpen={!!deletingUnit}
+        isOpen={Boolean(deletingUnit)}
         onClose={() => setDeletingUnit(null)}
         onConfirm={handleDeleteConfirm}
         title={`Delete unit "${deletingUnit?.name}"?`}
-        message={`Are you sure you want to delete unit "${deletingUnit?.symbol}"? Units used in products or historical stock movements cannot be deleted.`}
+        message={`Are you sure you want to delete unit "${deletingUnit?.name}" (${deletingUnit?.symbol})? This action cannot be undone if products or conversions depend on it.`}
         confirmText="Delete Unit"
-        isLoading={actionLoading}
         variant="danger"
+        isLoading={actionLoading}
       />
     </div>
   );

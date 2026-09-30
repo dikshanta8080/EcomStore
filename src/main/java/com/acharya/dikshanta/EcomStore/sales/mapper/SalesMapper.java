@@ -11,21 +11,33 @@ import java.util.List;
 public class SalesMapper {
 
     public SaleResponse toResponse(Sale sale) {
+        if (sale == null) {
+            return null;
+        }
+
         return SaleResponse.builder()
+                .id(sale.getId())
                 .invoiceNumber(sale.getInvoiceNumber())
+                .status(sale.getStatus())
                 .subTotal(sale.getSubTotal())
                 .discount(sale.getDiscount())
                 .tax(sale.getTax())
                 .total(sale.getTotal())
+                .createdAt(sale.getCreatedAt())
                 .saleItems(getSaleItemResponse(sale.getSaleItems()))
                 .build();
     }
 
     private List<SaleResponse.SaleItemResponse> getSaleItemResponse(List<SaleItem> saleItems) {
+        if (saleItems == null) {
+            return List.of();
+        }
+
         return saleItems.stream()
                 .map(saleItem -> SaleResponse.SaleItemResponse.builder()
-                        .productName(saleItem.getProduct().getName())
-                        .productId(saleItem.getProduct().getId())
+                        .id(saleItem.getId())
+                        .productName(saleItem.getProduct() != null ? saleItem.getProduct().getName() : null)
+                        .productId(saleItem.getProduct() != null ? saleItem.getProduct().getId() : null)
                         .unitPrice(saleItem.getUnitPrice())
                         .quantity(saleItem.getQuantity())
                         .total(saleItem.getTotal())

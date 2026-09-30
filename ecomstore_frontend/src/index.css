@@ -1,4 +1,5 @@
 @import "tailwindcss";
+@custom-variant dark (&:where(.dark, .dark *));
 
 @layer base {
   body {
@@ -51,8 +52,13 @@ html.dark ::selection {
 
 /* Canvas, Cards, Modals, Dropdowns & Elevated Surfaces */
 html.dark .bg-slate-50,
-html.dark .bg-slate-50\/75 {
-  background-color: #0b0f19 !important;
+html.dark .bg-slate-50\/40,
+html.dark .bg-slate-50\/50,
+html.dark .bg-slate-50\/60,
+html.dark .bg-slate-50\/70,
+html.dark .bg-slate-50\/75,
+html.dark .bg-slate-50\/80 {
+  background-color: #111827 !important;
 }
 
 html.dark .bg-white {
@@ -67,22 +73,18 @@ html.dark .bg-white\/50 {
   background-color: rgba(17, 24, 39, 0.5) !important;
 }
 
-html.dark .bg-slate-50\/50,
-html.dark .bg-slate-50\/70,
-html.dark .bg-slate-50\/80 {
-  background-color: rgba(17, 24, 39, 0.65) !important;
-}
-
-html.dark .bg-slate-100 {
+html.dark .bg-slate-100,
+html.dark .bg-slate-100\/90,
+html.dark .bg-slate-100\/80,
+html.dark .bg-slate-100\/70,
+html.dark .bg-slate-100\/50 {
   background-color: #1e293b !important;
 }
 
-html.dark .bg-slate-200 {
-  background-color: #334155 !important;
-}
-
+html.dark .bg-slate-200,
+html.dark .bg-slate-200\/60,
 html.dark .bg-slate-200\/70 {
-  background-color: rgba(51, 65, 85, 0.7) !important;
+  background-color: #334155 !important;
 }
 
 /* Hover States on Table Rows, Buttons, and Cards */
@@ -103,9 +105,12 @@ html.dark .hover\:bg-slate-200:hover {
 /* Borders and Dividers */
 html.dark .border-slate-100,
 html.dark .border-slate-200,
+html.dark .border-slate-200\/50,
 html.dark .border-slate-200\/60,
+html.dark .border-slate-200\/70,
 html.dark .border-slate-200\/80,
-html.dark .border-slate-200\/90 {
+html.dark .border-slate-200\/90,
+html.dark .border-slate-300 {
   border-color: #1f293d !important;
 }
 
@@ -139,19 +144,19 @@ html.dark .text-slate-800 {
 }
 
 html.dark .text-slate-700 {
-  color: #cbd5e1 !important;
+  color: #e2e8f0 !important;
 }
 
 html.dark .text-slate-600 {
-  color: #94a3b8 !important;
+  color: #cbd5e1 !important;
 }
 
 html.dark .text-slate-500 {
-  color: #64748b !important;
+  color: #94a3b8 !important;
 }
 
 html.dark .text-slate-400 {
-  color: #64748b !important;
+  color: #94a3b8 !important;
 }
 
 html.dark .hover\:text-slate-900:hover {

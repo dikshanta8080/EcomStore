@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Plus, ArrowLeftRight, Trash2, Calendar, Package, Scale, Search, X } from 'lucide-react';
+import { Plus, ArrowLeftRight, Trash2, Calendar, Search, X } from 'lucide-react';
 import type { InventoryMovement, InventoryMovementRequest, MovementType, InventoryMovementFilterParams } from '../../types/inventory';
 import type { Product } from '../../types/product';
 import type { Unit } from '../../types/unit';
@@ -36,13 +36,12 @@ export const MovementsPage: React.FC<MovementsPageProps> = ({
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [deletingMovement, setDeletingMovement] = useState<InventoryMovement | null>(null);
   const [actionLoading, setActionLoading] = useState(false);
+  const [showDateFilters, setShowDateFilters] = useState(false);
 
-  // Sync internal search input if external filterParams changes
   useEffect(() => {
     setSearchTerm(filterParams.search || '');
   }, [filterParams.search]);
 
-  // Debounce search update
   useEffect(() => {
     const handler = setTimeout(() => {
       if ((filterParams.search || '') !== searchTerm.trim()) {
@@ -52,7 +51,7 @@ export const MovementsPage: React.FC<MovementsPageProps> = ({
           page: 0,
         });
       }
-    }, 350);
+    }, 300);
 
     return () => clearTimeout(handler);
   }, [searchTerm]); // eslint-disable-line react-hooks/exhaustive-deps
@@ -92,34 +91,6 @@ export const MovementsPage: React.FC<MovementsPageProps> = ({
     });
   };
 
-  const handleDatePreset = (preset: 'today' | '7days' | '30days' | 'month') => {
-    const now = new Date();
-    const todayStr = now.toISOString().split('T')[0];
-    let startStr = todayStr;
-
-    if (preset === 'today') {
-      startStr = todayStr;
-    } else if (preset === '7days') {
-      const d = new Date(now);
-      d.setDate(d.getDate() - 7);
-      startStr = d.toISOString().split('T')[0];
-    } else if (preset === '30days') {
-      const d = new Date(now);
-      d.setDate(d.getDate() - 30);
-      startStr = d.toISOString().split('T')[0];
-    } else if (preset === 'month') {
-      const d = new Date(now.getFullYear(), now.getMonth(), 1);
-      startStr = d.toISOString().split('T')[0];
-    }
-
-    onFilterChange({
-      ...filterParams,
-      startDate: startStr,
-      endDate: todayStr,
-      page: 0,
-    });
-  };
-
   const handleClearFilters = () => {
     setSearchTerm('');
     onFilterChange({
@@ -134,13 +105,9 @@ export const MovementsPage: React.FC<MovementsPageProps> = ({
     filterParams.search ||
     filterParams.movementType ||
     filterParams.productId ||
-    filterParams.minQuantity !== undefined ||
-    filterParams.maxQuantity !== undefined ||
     filterParams.startDate ||
     filterParams.endDate
   );
-
-  const selectedProduct = products.find((p) => p.id === filterParams.productId);
 
   const handleCreate = async (data: InventoryMovementRequest) => {
     setActionLoading(true);
@@ -177,133 +144,149 @@ export const MovementsPage: React.FC<MovementsPageProps> = ({
   };
 
   return (
-    <div className="space-y-6">
-      {/* Top Filter Controls & Create Button */}
-      <div className="flex flex-col gap-4">
-        <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3">
-          {/* Movement Type Filter Tabs */}
-          <div className="inline-flex rounded-xl bg-slate-200/70 p-1 text-xs font-semibold text-slate-600">
-            <button
-              onClick={() => handleTypeChange('ALL')}
-              className={`rounded-lg px-3.5 py-1.5 transition-all cursor-pointer ${
-                !filterParams.movementType
-                  ? 'bg-white text-slate-900 shadow-2xs font-bold'
-                  : 'hover:text-slate-900'
-              }`}
-            >
-              All Movements
-            </button>
-            <button
-              onClick={() => handleTypeChange('IN')}
-              className={`rounded-lg px-3.5 py-1.5 transition-all cursor-pointer ${
-                filterParams.movementType === 'IN'
-                  ? 'bg-emerald-600 text-white shadow-2xs font-bold'
-                  : 'hover:text-emerald-700'
-              }`}
-            >
-              Stock IN (Receive)
-            </button>
-            <button
-              onClick={() => handleTypeChange('OUT')}
-              className={`rounded-lg px-3.5 py-1.5 transition-all cursor-pointer ${
-                filterParams.movementType === 'OUT'
-                  ? 'bg-rose-600 text-white shadow-2xs font-bold'
-                  : 'hover:text-rose-700'
-              }`}
-            >
-              Stock OUT (Dispatch)
-            </button>
-          </div>
-
-          {/* Record Movement Button */}
-          <button
-            onClick={() => setIsModalOpen(true)}
-            className="inline-flex items-center justify-center gap-2 rounded-xl bg-indigo-600 px-4 py-2.5 text-sm font-semibold text-white shadow-xs hover:bg-indigo-700 transition-all active:scale-[0.98] cursor-pointer"
-          >
-            <Plus className="h-4 w-4" />
-            Record Movement
-          </button>
+    <div className="space-y-4">
+      {/* Header and Primary Actions */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+        <div>
+          <h1 className="text-lg font-bold text-slate-900 tracking-tight">Stock Movements</h1>
+          <p className="text-xs text-slate-500 mt-0.5">
+            Audit log of incoming inventory restocks and outgoing order dispatches
+          </p>
         </div>
 
-        {/* Dynamic Search & Product Filter Row */}
-        <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
-          {/* Dynamic Search Input */}
-          <div className="relative flex-1">
-            <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
-            <input
-              type="text"
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              placeholder="Filter by product name, SKU, or category..."
-              className="w-full rounded-xl border border-slate-200/80 bg-white pl-10 pr-9 py-2.5 text-xs text-slate-900 placeholder:text-slate-400 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20 focus:outline-none transition-all shadow-2xs"
-            />
-            {searchTerm && (
-              <button
-                onClick={() => setSearchTerm('')}
-                className="absolute right-3 top-1/2 -translate-y-1/2 rounded-full p-1 text-slate-400 hover:text-slate-600 hover:bg-slate-100 transition-colors cursor-pointer"
-                title="Clear search"
+        <button
+          onClick={() => setIsModalOpen(true)}
+          className="inline-flex items-center gap-1.5 rounded-md bg-indigo-600 px-3 py-1.5 text-xs font-semibold text-white shadow-xs hover:bg-indigo-700 transition-colors self-start sm:self-auto"
+        >
+          <Plus className="h-3.5 w-3.5" />
+          Record Movement
+        </button>
+      </div>
+
+      {/* Movement Type Tabs */}
+      <div className="flex items-center gap-1 border-b border-slate-200 overflow-x-auto text-xs font-medium">
+        <button
+          onClick={() => handleTypeChange('ALL')}
+          className={`px-3 py-2 border-b-2 font-medium transition-colors whitespace-nowrap ${
+            !filterParams.movementType
+              ? 'border-indigo-600 text-indigo-600 font-semibold'
+              : 'border-transparent text-slate-600 hover:text-slate-900'
+          }`}
+        >
+          All Movements
+        </button>
+        <button
+          onClick={() => handleTypeChange('IN')}
+          className={`px-3 py-2 border-b-2 font-medium transition-colors whitespace-nowrap ${
+            filterParams.movementType === 'IN'
+              ? 'border-emerald-600 text-emerald-700 font-semibold'
+              : 'border-transparent text-slate-600 hover:text-slate-900'
+          }`}
+        >
+          Stock IN (Receive)
+        </button>
+        <button
+          onClick={() => handleTypeChange('OUT')}
+          className={`px-3 py-2 border-b-2 font-medium transition-colors whitespace-nowrap ${
+            filterParams.movementType === 'OUT'
+              ? 'border-rose-600 text-rose-700 font-semibold'
+              : 'border-transparent text-slate-600 hover:text-slate-900'
+          }`}
+        >
+          Stock OUT (Dispatch)
+        </button>
+      </div>
+
+      {/* Filter Toolbar */}
+      <div className="space-y-2">
+        <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-2.5">
+          <div className="flex flex-1 items-center gap-2">
+            {/* Search Input */}
+            <div className="relative flex-1 max-w-sm">
+              <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-slate-400" />
+              <input
+                type="text"
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                placeholder="Search product name, SKU..."
+                className="w-full rounded-md border border-slate-300 bg-white pl-8 pr-7 py-1.5 text-xs text-slate-800 placeholder:text-slate-400 focus:border-indigo-600 focus:outline-none"
+              />
+              {searchTerm && (
+                <button
+                  onClick={() => setSearchTerm('')}
+                  className="absolute right-2 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600"
+                >
+                  <X className="h-3 w-3" />
+                </button>
+              )}
+            </div>
+
+            {/* Product Filter */}
+            <div className="min-w-[150px]">
+              <select
+                value={filterParams.productId || ''}
+                onChange={(e) => handleProductChange(e.target.value)}
+                className="w-full rounded-md border border-slate-300 bg-white px-2.5 py-1.5 text-xs text-slate-700 focus:border-indigo-600 focus:outline-none"
               >
-                <X className="h-3.5 w-3.5" />
+                <option value="">All Products</option>
+                {products.map((p) => (
+                  <option key={p.id} value={p.id}>
+                    {p.name}
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            {/* Date Range Toggle */}
+            <button
+              type="button"
+              onClick={() => setShowDateFilters(!showDateFilters)}
+              className={`inline-flex items-center gap-1.5 rounded-md border px-2.5 py-1.5 text-xs font-medium transition-colors ${
+                showDateFilters || filterParams.startDate || filterParams.endDate
+                  ? 'border-indigo-300 bg-indigo-50 text-indigo-700'
+                  : 'border-slate-300 bg-white text-slate-700 hover:bg-slate-50'
+              }`}
+            >
+              <Calendar className="h-3 w-3" />
+              <span>Dates</span>
+              {(filterParams.startDate || filterParams.endDate) && (
+                <span className="h-1.5 w-1.5 rounded-full bg-indigo-600" />
+              )}
+            </button>
+
+            {hasActiveFilters && (
+              <button
+                onClick={handleClearFilters}
+                className="text-xs text-slate-500 hover:text-slate-800 flex items-center gap-1"
+                title="Reset filters"
+              >
+                <X className="h-3 w-3" />
+                Clear
               </button>
             )}
           </div>
-
-          {/* Product Filter Dropdown */}
-          <div className="sm:w-64">
-            <select
-              value={filterParams.productId || ''}
-              onChange={(e) => handleProductChange(e.target.value)}
-              className="w-full rounded-xl border border-slate-200/80 bg-white px-3 py-2.5 text-xs font-medium text-slate-700 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20 focus:outline-none transition-all shadow-2xs cursor-pointer"
-            >
-              <option value="">All Products</option>
-              {products.map((p) => (
-                <option key={p.id} value={p.id}>
-                  {p.name} ({p.sku})
-                </option>
-              ))}
-            </select>
-          </div>
-
-          {/* Reset Filters Button */}
-          {hasActiveFilters && (
-            <button
-              onClick={handleClearFilters}
-              className="inline-flex items-center justify-center gap-1.5 rounded-xl border border-slate-200/80 bg-white px-3.5 py-2.5 text-xs font-semibold text-slate-600 shadow-2xs hover:bg-slate-50 hover:text-slate-900 transition-colors cursor-pointer shrink-0"
-              title="Reset all movement filters"
-            >
-              <X className="h-3.5 w-3.5 text-slate-400" />
-              Clear Filters
-            </button>
-          )}
         </div>
 
-        {/* Date Filter Toolbar */}
-        <div className="flex flex-col lg:flex-row items-stretch lg:items-center justify-between gap-3 rounded-2xl border border-slate-200/80 bg-white p-3.5 shadow-2xs">
-          <div className="flex flex-wrap items-center gap-3">
-            <div className="flex items-center gap-1.5 text-xs font-bold text-slate-700 uppercase tracking-wider">
-              <Calendar className="h-4 w-4 text-indigo-500" />
-              <span>Date Filter:</span>
-            </div>
-
-            {/* Start Date */}
+        {/* Collapsible Date Filters Drawer */}
+        {showDateFilters && (
+          <div className="rounded-md border border-slate-200 bg-slate-50/70 p-3 flex flex-wrap items-center gap-3 text-xs">
             <div className="flex items-center gap-1.5">
-              <label className="text-[11px] font-semibold text-slate-500">From:</label>
+              <span className="text-slate-500">From:</span>
               <input
                 type="date"
                 value={filterParams.startDate || ''}
                 onChange={(e) => handleDateChange('startDate', e.target.value)}
-                className="rounded-xl border border-slate-200/90 bg-slate-50/50 px-2.5 py-1.5 text-xs font-medium text-slate-800 focus:border-indigo-500 focus:bg-white focus:ring-2 focus:ring-indigo-500/20 focus:outline-none transition-all shadow-2xs cursor-pointer"
+                className="rounded-md border border-slate-300 bg-white px-2 py-1 text-xs text-slate-800 focus:border-indigo-600 focus:outline-none"
               />
             </div>
 
-            {/* End Date */}
             <div className="flex items-center gap-1.5">
-              <label className="text-[11px] font-semibold text-slate-500">To:</label>
+              <span className="text-slate-500">To:</span>
               <input
                 type="date"
                 value={filterParams.endDate || ''}
                 onChange={(e) => handleDateChange('endDate', e.target.value)}
-                className="rounded-xl border border-slate-200/90 bg-slate-50/50 px-2.5 py-1.5 text-xs font-medium text-slate-800 focus:border-indigo-500 focus:bg-white focus:ring-2 focus:ring-indigo-500/20 focus:outline-none transition-all shadow-2xs cursor-pointer"
+                className="rounded-md border border-slate-300 bg-white px-2 py-1 text-xs text-slate-800 focus:border-indigo-600 focus:outline-none"
               />
             </div>
 
@@ -311,133 +294,29 @@ export const MovementsPage: React.FC<MovementsPageProps> = ({
               <button
                 type="button"
                 onClick={handleClearDates}
-                className="inline-flex items-center gap-1 text-xs font-bold text-rose-600 hover:text-rose-700 hover:underline px-1 py-1 cursor-pointer"
-                title="Clear date range"
+                className="text-xs text-rose-600 hover:underline"
               >
-                <X className="h-3.5 w-3.5" />
                 Clear Dates
               </button>
             )}
-          </div>
-
-          {/* Quick Presets */}
-          <div className="flex flex-wrap items-center gap-1.5">
-            <span className="text-[11px] font-bold text-slate-400 uppercase tracking-wider mr-1">Presets:</span>
-            <button
-              type="button"
-              onClick={() => handleDatePreset('today')}
-              className="rounded-lg px-2.5 py-1 text-xs font-semibold bg-slate-100 text-slate-700 hover:bg-slate-200/80 transition-colors cursor-pointer"
-            >
-              Today
-            </button>
-            <button
-              type="button"
-              onClick={() => handleDatePreset('7days')}
-              className="rounded-lg px-2.5 py-1 text-xs font-semibold bg-slate-100 text-slate-700 hover:bg-slate-200/80 transition-colors cursor-pointer"
-            >
-              Last 7 Days
-            </button>
-            <button
-              type="button"
-              onClick={() => handleDatePreset('30days')}
-              className="rounded-lg px-2.5 py-1 text-xs font-semibold bg-slate-100 text-slate-700 hover:bg-slate-200/80 transition-colors cursor-pointer"
-            >
-              Last 30 Days
-            </button>
-            <button
-              type="button"
-              onClick={() => handleDatePreset('month')}
-              className="rounded-lg px-2.5 py-1 text-xs font-semibold bg-slate-100 text-slate-700 hover:bg-slate-200/80 transition-colors cursor-pointer"
-            >
-              This Month
-            </button>
-          </div>
-        </div>
-
-        {/* Active Filters Pill Bar */}
-        {hasActiveFilters && (
-          <div className="flex flex-wrap items-center gap-1.5 pt-0.5">
-            <span className="text-[11px] font-bold text-slate-400 uppercase tracking-wider mr-1">
-              Active:
-            </span>
-
-            {filterParams.search && (
-              <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-semibold bg-indigo-50 text-indigo-700 border border-indigo-200">
-                Search: &ldquo;{filterParams.search}&rdquo;
-                <button
-                  type="button"
-                  onClick={() => setSearchTerm('')}
-                  className="hover:text-indigo-900 ml-0.5 cursor-pointer"
-                >
-                  <X className="h-3 w-3" />
-                </button>
-              </span>
-            )}
-
-            {filterParams.movementType && (
-              <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-semibold bg-slate-100 text-slate-700 border border-slate-200">
-                Type: {filterParams.movementType === 'IN' ? 'Stock IN' : 'Stock OUT'}
-                <button
-                  type="button"
-                  onClick={() => handleTypeChange('ALL')}
-                  className="hover:text-slate-900 ml-0.5 cursor-pointer"
-                >
-                  <X className="h-3 w-3" />
-                </button>
-              </span>
-            )}
-
-            {selectedProduct && (
-              <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-semibold bg-purple-50 text-purple-700 border border-purple-200">
-                Product: {selectedProduct.name} ({selectedProduct.sku})
-                <button
-                  type="button"
-                  onClick={() => handleProductChange('')}
-                  className="hover:text-purple-900 ml-0.5 cursor-pointer"
-                >
-                  <X className="h-3 w-3" />
-                </button>
-              </span>
-            )}
-
-            {(filterParams.startDate || filterParams.endDate) && (
-              <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200 font-mono">
-                Date: {filterParams.startDate || 'Start'} &rarr; {filterParams.endDate || 'End'}
-                <button
-                  type="button"
-                  onClick={handleClearDates}
-                  className="hover:text-emerald-900 ml-0.5 cursor-pointer"
-                >
-                  <X className="h-3 w-3" />
-                </button>
-              </span>
-            )}
-
-            <button
-              type="button"
-              onClick={handleClearFilters}
-              className="text-xs font-bold text-rose-600 hover:text-rose-700 hover:underline px-2 py-0.5 cursor-pointer"
-            >
-              Clear All
-            </button>
           </div>
         )}
       </div>
 
       {/* Main Table Card */}
-      <div className="rounded-2xl border border-slate-200/80 bg-white shadow-2xs overflow-hidden">
+      <div className="rounded-lg border border-slate-200 bg-white overflow-hidden shadow-xs">
         {isLoading ? (
-          <LoadingSpinner message="Fetching inventory movements..." />
+          <LoadingSpinner message="Fetching movements..." />
         ) : movements.length === 0 ? (
           <div className="p-8">
             <EmptyState
-              title={hasActiveFilters ? 'No matching inventory movements' : 'No movements recorded yet'}
+              title={hasActiveFilters ? 'No matching movements' : 'No movements recorded yet'}
               description={
                 hasActiveFilters
-                  ? 'No stock movements match the dynamic search criteria or filters applied.'
-                  : 'Start recording Stock IN (receive) or Stock OUT (dispatch) transactions.'
+                  ? 'No records match the selected filter criteria.'
+                  : 'Record stock intake or dispatch transactions to audit inventory changes.'
               }
-              actionText={hasActiveFilters ? 'Clear All Filters' : 'Record Movement'}
+              actionText={hasActiveFilters ? 'Reset Filters' : 'Record Movement'}
               onAction={() => {
                 if (hasActiveFilters) {
                   handleClearFilters();
@@ -445,109 +324,64 @@ export const MovementsPage: React.FC<MovementsPageProps> = ({
                   setIsModalOpen(true);
                 }
               }}
-              icon={<ArrowLeftRight className="h-7 w-7 text-indigo-500" />}
+              icon={<ArrowLeftRight className="h-6 w-6 text-slate-400" />}
             />
           </div>
         ) : (
           <div className="overflow-x-auto">
-            <table className="w-full text-left text-sm">
-              <thead className="border-b border-slate-100 bg-slate-50/75 text-[11px] font-bold uppercase tracking-wider text-slate-500 select-none">
+            <table className="w-full text-left text-xs">
+              <thead className="bg-slate-50 border-b border-slate-200 text-slate-500 font-semibold uppercase tracking-wider">
                 <tr>
-                  <th className="px-6 py-3.5">ID</th>
-                  <th className="px-6 py-3.5">Type</th>
-                  <th className="px-6 py-3.5">Product</th>
-                  <th className="px-6 py-3.5">Quantity (Unit)</th>
-                  <th className="px-6 py-3.5">Base Equivalent</th>
-                  <th className="px-6 py-3.5">Unit Price</th>
-                  <th className="px-6 py-3.5">Total Value</th>
-                  <th className="px-6 py-3.5">Timestamp</th>
-                  <th className="px-6 py-3.5 text-right">Actions</th>
+                  <th className="py-3 px-4 w-20">ID</th>
+                  <th className="py-3 px-4">Type</th>
+                  <th className="py-3 px-4">Product</th>
+                  <th className="py-3 px-4">Quantity</th>
+                  <th className="py-3 px-4">Unit Price</th>
+                  <th className="py-3 px-4">Total Amount</th>
+                  <th className="py-3 px-4">Timestamp</th>
+                  <th className="py-3 px-4 text-right w-20">Action</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-slate-100">
-                {movements.map((movement) => {
-                  const isCustomUnit =
-                    movement.unitId &&
-                    movement.baseUnitId &&
-                    movement.unitId !== movement.baseUnitId;
-
-                  return (
-                    <tr
-                      key={movement.id}
-                      className="hover:bg-slate-50/60 transition-colors group"
-                    >
-                      <td className="px-6 py-4 font-mono text-xs font-semibold text-slate-400">
-                        #{movement.id}
-                      </td>
-                      <td className="px-6 py-4">
-                        <MovementTypeBadge type={movement.movementType} />
-                      </td>
-                      <td className="px-6 py-4">
-                        <div className="flex items-center gap-2">
-                          <Package className="h-4 w-4 text-slate-400 shrink-0" />
-                          <div className="min-w-0">
-                            <span className="font-semibold text-slate-900 group-hover:text-indigo-600 transition-colors block truncate max-w-[200px]" title={movement.productName}>
-                              {movement.productName}
-                            </span>
-                            <span className="text-[11px] text-slate-400 block truncate">
-                              {movement.categoryName || 'Uncategorized'}
-                            </span>
-                          </div>
-                        </div>
-                      </td>
-                      <td className="px-6 py-4">
-                        <div className="flex items-center gap-1.5">
-                          <span className="font-bold text-slate-900 font-mono text-sm">
-                            {movement.quantity}
-                          </span>
-                          <span className="text-xs font-semibold text-slate-600">
-                            {movement.unitSymbol || movement.unitName || ''}
-                          </span>
-                        </div>
-                      </td>
-                      <td className="px-6 py-4">
-                        <div className="flex items-center gap-1.5">
-                          <span className="font-mono font-medium text-slate-700 text-xs">
-                            {movement.baseQuantity} {movement.baseUnitSymbol || ''}
-                          </span>
-                          {isCustomUnit && (
-                            <span
-                              className="inline-flex items-center gap-0.5 rounded px-1 py-0.2 text-[10px] font-bold bg-indigo-50 text-indigo-700 border border-indigo-200/60 font-mono"
-                              title={`Conversion factor: 1 ${movement.unitSymbol} = ${movement.conversionFactor} ${movement.baseUnitSymbol}`}
-                            >
-                              <Scale className="h-2.5 w-2.5" />
-                              {movement.conversionFactor}x
-                            </span>
-                          )}
-                        </div>
-                      </td>
-                      <td className="px-6 py-4 font-mono text-xs text-slate-600">
-                        ${Number(movement.unitPrice).toFixed(2)}
-                        <span className="text-[10px] text-slate-400 font-sans ml-0.5">
-                          /{movement.unitSymbol || 'unit'}
-                        </span>
-                      </td>
-                      <td className="px-6 py-4 font-bold text-slate-900 font-mono">
-                        ${Number(movement.totalAmount).toFixed(2)}
-                      </td>
-                      <td className="px-6 py-4 text-xs text-slate-500 whitespace-nowrap">
-                        <div className="flex items-center gap-1.5">
-                          <Calendar className="h-3.5 w-3.5 text-slate-400" />
-                          <span>{formatDate(movement.movementDate)}</span>
-                        </div>
-                      </td>
-                      <td className="px-6 py-4 text-right">
-                        <button
-                          onClick={() => setDeletingMovement(movement)}
-                          className="rounded-lg p-1.5 text-slate-400 hover:bg-rose-50 hover:text-rose-600 transition-colors cursor-pointer"
-                          title="Delete Movement Record"
-                        >
-                          <Trash2 className="h-4 w-4" />
-                        </button>
-                      </td>
-                    </tr>
-                  );
-                })}
+              <tbody className="divide-y divide-slate-100 text-slate-700">
+                {movements.map((movement) => (
+                  <tr key={movement.id} className="hover:bg-slate-50/70 transition-colors">
+                    <td className="py-3 px-4 font-mono text-slate-400 font-medium">
+                      #{movement.id}
+                    </td>
+                    <td className="py-3 px-4">
+                      <MovementTypeBadge type={movement.movementType} />
+                    </td>
+                    <td className="py-3 px-4 max-w-[200px]">
+                      <span className="font-semibold text-slate-900 block truncate" title={movement.productName}>
+                        {movement.productName}
+                      </span>
+                      <span className="text-[11px] text-slate-400 font-mono">
+                        {movement.categoryName || 'General'}
+                      </span>
+                    </td>
+                    <td className="py-3 px-4 font-mono font-medium">
+                      {movement.quantity} {movement.unitSymbol || movement.unitName || ''}
+                    </td>
+                    <td className="py-3 px-4 font-mono">
+                      Rs. {Number(movement.unitPrice).toFixed(2)}
+                    </td>
+                    <td className="py-3 px-4 font-mono font-bold text-slate-900">
+                      Rs. {Number(movement.totalAmount).toFixed(2)}
+                    </td>
+                    <td className="py-3 px-4 text-slate-500 whitespace-nowrap">
+                      {formatDate(movement.movementDate)}
+                    </td>
+                    <td className="py-3 px-4 text-right">
+                      <button
+                        onClick={() => setDeletingMovement(movement)}
+                        className="rounded p-1 text-slate-400 hover:text-rose-600 hover:bg-rose-50 transition-colors"
+                        title="Delete Movement Record"
+                      >
+                        <Trash2 className="h-3.5 w-3.5" />
+                      </button>
+                    </td>
+                  </tr>
+                ))}
               </tbody>
             </table>
           </div>

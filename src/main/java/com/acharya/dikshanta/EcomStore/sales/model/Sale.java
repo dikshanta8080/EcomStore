@@ -2,6 +2,7 @@ package com.acharya.dikshanta.EcomStore.sales.model;
 
 import com.acharya.dikshanta.EcomStore.common.model.BaseEntity;
 import com.acharya.dikshanta.EcomStore.payment.model.Payment;
+import com.acharya.dikshanta.EcomStore.sales.enums.SaleStatus;
 import jakarta.persistence.*;
 import lombok.*;
 import lombok.experimental.SuperBuilder;
@@ -22,6 +23,11 @@ public class Sale extends BaseEntity {
     @Builder.Default
     @Column(name = "invoice_number", nullable = false, unique = true)
     UUID invoiceNumber = UUID.randomUUID();
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "status", nullable = false)
+    @Builder.Default
+    private SaleStatus status = SaleStatus.PENDING;
 
     @Column(name = "sub_total", nullable = false)
     BigDecimal subTotal;

@@ -2,7 +2,7 @@ import React from 'react';
 import { Modal } from '../../components/common/Modal';
 import { StockBadge } from '../../components/common/Badge';
 import type { Product } from '../../types/product';
-import { Tag, Hash, DollarSign, ArrowLeftRight, Scale, ArrowRight, Percent } from 'lucide-react';
+import { Tag, Hash, ArrowLeftRight, Scale, ArrowRight, Percent, Package } from 'lucide-react';
 
 interface ProductDetailsModalProps {
   isOpen: boolean;
@@ -25,110 +25,98 @@ export const ProductDetailsModal: React.FC<ProductDetailsModalProps> = ({
     <Modal
       isOpen={isOpen}
       onClose={onClose}
-      title="Product Details"
+      title="Product Specifications"
       subtitle={`SKU: ${product.sku}`}
-      maxWidth="lg"
+      maxWidth="md"
     >
-      <div className="space-y-6">
-        {/* Header Summary Card */}
-        <div className="rounded-2xl bg-gradient-to-br from-slate-50 to-indigo-50/40 p-5 ring-1 ring-slate-200/80">
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+      <div className="space-y-4">
+        {/* Header Summary */}
+        <div className="rounded-lg border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/50 p-4">
+          <div className="flex items-center justify-between">
             <div>
-              <span className="text-xs font-semibold uppercase tracking-wider text-indigo-600">
-                {product.categoryName || 'General'}
+              <span className="text-[11px] font-semibold text-slate-500 dark:text-slate-400">
+                {product.categoryName || 'General Category'}
               </span>
-              <h3 className="text-xl font-extrabold text-slate-900 mt-0.5">{product.name}</h3>
+              <h3 className="text-base font-bold text-slate-900 dark:text-white mt-0.5">{product.name}</h3>
             </div>
-            <div className="text-left sm:text-right">
-              <span className="text-xs text-slate-500 block">Unit Price (per {product.baseUnitSymbol || 'unit'})</span>
-              <span className="text-2xl font-black text-slate-900">
-                ${Number(product.price).toFixed(2)}
+            <div className="text-right">
+              <span className="text-[11px] font-semibold text-slate-500 dark:text-slate-400 block">Base Price</span>
+              <span className="text-base font-bold font-mono text-slate-900 dark:text-white">
+                Rs. {Number(product.price).toFixed(2)}
               </span>
             </div>
           </div>
         </div>
 
         {/* Detailed Grid */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-          <div className="flex items-start gap-3 rounded-xl border border-slate-100 bg-slate-50/50 p-4">
-            <Hash className="h-5 w-5 text-slate-400 mt-0.5" />
-            <div>
-              <p className="text-xs font-semibold text-slate-500 uppercase tracking-wider">Product ID</p>
-              <p className="text-sm font-bold text-slate-900 mt-0.5 font-mono">#{product.id}</p>
+        <div className="grid grid-cols-2 gap-3 text-xs">
+          <div className="rounded-md border border-slate-200 bg-white p-3">
+            <div className="flex items-center gap-1.5 text-slate-400 font-medium">
+              <Hash className="h-3.5 w-3.5" />
+              <span>Product ID</span>
             </div>
+            <p className="mt-1 font-mono font-semibold text-slate-900">#{product.id}</p>
           </div>
 
-          <div className="flex items-start gap-3 rounded-xl border border-slate-100 bg-slate-50/50 p-4">
-            <Tag className="h-5 w-5 text-slate-400 mt-0.5" />
-            <div>
-              <p className="text-xs font-semibold text-slate-500 uppercase tracking-wider">SKU</p>
-              <p className="text-sm font-bold text-slate-900 mt-0.5 font-mono">{product.sku}</p>
+          <div className="rounded-md border border-slate-200 bg-white p-3">
+            <div className="flex items-center gap-1.5 text-slate-400 font-medium">
+              <Tag className="h-3.5 w-3.5" />
+              <span>SKU</span>
             </div>
+            <p className="mt-1 font-mono font-semibold text-slate-900">{product.sku}</p>
           </div>
 
-          <div className="flex items-start gap-3 rounded-xl border border-slate-100 bg-slate-50/50 p-4">
-            <Scale className="h-5 w-5 text-indigo-500 mt-0.5" />
-            <div>
-              <p className="text-xs font-semibold text-slate-500 uppercase tracking-wider">Base Unit</p>
-              <p className="text-sm font-bold text-slate-900 mt-0.5">
-                {product.baseUnitName || 'Standard'} ({product.baseUnitSymbol || 'Unit'})
-              </p>
+          <div className="rounded-md border border-slate-200 bg-white p-3">
+            <div className="flex items-center gap-1.5 text-slate-400 font-medium">
+              <Scale className="h-3.5 w-3.5 text-slate-500" />
+              <span>Base Unit</span>
             </div>
+            <p className="mt-1 font-medium text-slate-900">
+              {product.baseUnitName || 'Standard'} ({product.baseUnitSymbol || 'Unit'})
+            </p>
           </div>
 
-          <div className="flex items-start gap-3 rounded-xl border border-slate-100 bg-slate-50/50 p-4">
-            <Percent className="h-5 w-5 text-indigo-500 mt-0.5" />
-            <div>
-              <p className="text-xs font-semibold text-slate-500 uppercase tracking-wider">Tax Rate</p>
-              {product.taxRate !== undefined && product.taxRate !== null ? (
-                <div className="mt-0.5">
-                  <p className="text-sm font-bold text-slate-900 font-mono">
-                    {product.taxRate}% VAT / Tax
-                  </p>
-                  <p className="text-[11px] text-slate-500 mt-0.5">
-                    Gross: ${(Number(product.price) + (Number(product.price) * Number(product.taxRate)) / 100).toFixed(2)}
-                  </p>
-                </div>
-              ) : (
-                <p className="text-sm font-semibold text-slate-400 mt-0.5">Exempt / No Tax</p>
-              )}
+          <div className="rounded-md border border-slate-200 bg-white p-3">
+            <div className="flex items-center gap-1.5 text-slate-400 font-medium">
+              <Percent className="h-3.5 w-3.5 text-slate-500" />
+              <span>Tax Rate</span>
             </div>
+            <p className="mt-1 font-medium text-slate-900">
+              {product.taxRate !== undefined && product.taxRate !== null
+                ? `${product.taxRate}% VAT`
+                : 'Exempt (0%)'}
+            </p>
           </div>
 
-          <div className="flex items-start gap-3 rounded-xl border border-slate-100 bg-slate-50/50 p-4 sm:col-span-2">
-            <DollarSign className="h-5 w-5 text-slate-400 mt-0.5" />
-            <div>
-              <p className="text-xs font-semibold text-slate-500 uppercase tracking-wider">
-                Current Stock ({product.baseUnitSymbol || 'Units'})
-              </p>
-              <div className="mt-1 flex items-center gap-2">
-                <span className="font-mono font-bold text-slate-900 text-sm">
-                  {product.stock} {product.baseUnitSymbol}
-                </span>
-                <StockBadge stock={product.stock} />
+          <div className="col-span-2 rounded-md border border-slate-200 bg-white p-3">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-1.5 text-slate-400 font-medium">
+                <Package className="h-3.5 w-3.5" />
+                <span>On-Hand Inventory</span>
               </div>
+              <StockBadge stock={product.stock} />
             </div>
+            <p className="mt-1.5 font-mono font-bold text-slate-900 text-sm">
+              {product.stock} {product.baseUnitSymbol || 'Units'}
+            </p>
           </div>
         </div>
 
-        {/* Configured Conversions */}
+        {/* Conversions */}
         {product.conversions && product.conversions.length > 0 && (
-          <div>
-            <h4 className="text-xs font-bold text-slate-700 uppercase tracking-wider mb-2">
-              Configured Packaging & Conversions
-            </h4>
-            <div className="flex flex-wrap gap-2">
+          <div className="text-xs">
+            <h4 className="font-medium text-slate-700 mb-1.5">Packaging Conversions</h4>
+            <div className="flex flex-wrap gap-1.5">
               {product.conversions.map((c) => (
                 <div
                   key={c.id}
-                  className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-slate-200 bg-slate-50 text-xs font-medium text-slate-700"
+                  className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded border border-slate-200 bg-slate-50 text-[11px] text-slate-700"
                 >
-                  <span className="font-bold">1 {c.unitSymbol}</span>
+                  <span className="font-semibold">1 {c.unitSymbol}</span>
                   <ArrowRight className="h-3 w-3 text-slate-400" />
-                  <span className="text-indigo-600 font-bold">
+                  <span className="font-mono font-bold text-indigo-700">
                     {c.conversionFactor} {product.baseUnitSymbol}
                   </span>
-                  {!c.active && <span className="text-[10px] text-slate-400">(inactive)</span>}
                 </div>
               ))}
             </div>
@@ -136,15 +124,17 @@ export const ProductDetailsModal: React.FC<ProductDetailsModalProps> = ({
         )}
 
         {/* Description */}
-        <div>
-          <h4 className="text-xs font-bold text-slate-700 uppercase tracking-wider mb-2">Description</h4>
-          <div className="rounded-xl border border-slate-100 bg-slate-50/50 p-4 text-sm text-slate-600 leading-relaxed">
-            {product.description || <span className="italic text-slate-400">No description provided for this product.</span>}
+        {product.description && (
+          <div className="text-xs">
+            <h4 className="font-medium text-slate-700 mb-1">Description</h4>
+            <p className="text-slate-600 rounded-md border border-slate-200 bg-slate-50 p-2.5">
+              {product.description}
+            </p>
           </div>
-        </div>
+        )}
 
         {/* Action footer */}
-        <div className="flex flex-wrap items-center justify-between gap-3 border-t border-slate-100 pt-5">
+        <div className="flex items-center justify-between border-t border-slate-100 pt-3 mt-4">
           <div className="flex items-center gap-2">
             {onRecordMovement && (
               <button
@@ -152,30 +142,29 @@ export const ProductDetailsModal: React.FC<ProductDetailsModalProps> = ({
                   onClose();
                   onRecordMovement(product);
                 }}
-                className="inline-flex items-center gap-2 rounded-xl bg-slate-900 px-4 py-2 text-xs font-semibold text-white shadow-sm hover:bg-slate-800 transition-colors"
+                className="inline-flex items-center gap-1.5 rounded-md border border-slate-300 bg-white px-3 py-1.5 text-xs font-medium text-slate-700 hover:bg-slate-50 transition-colors"
               >
-                <ArrowLeftRight className="h-3.5 w-3.5 text-indigo-400" />
-                Adjust Stock Movement
+                <ArrowLeftRight className="h-3.5 w-3.5 text-slate-500" />
+                Record Movement
               </button>
             )}
-
             {onManageConversions && (
               <button
                 onClick={() => {
                   onClose();
                   onManageConversions(product);
                 }}
-                className="inline-flex items-center gap-2 rounded-xl border border-indigo-200 bg-indigo-50/80 px-4 py-2 text-xs font-bold text-indigo-700 hover:bg-indigo-100 transition-colors"
+                className="inline-flex items-center gap-1.5 rounded-md border border-slate-300 bg-white px-3 py-1.5 text-xs font-medium text-slate-700 hover:bg-slate-50 transition-colors"
               >
-                <Scale className="h-3.5 w-3.5" />
-                Unit Conversions
+                <Scale className="h-3.5 w-3.5 text-slate-500" />
+                Conversions
               </button>
             )}
           </div>
 
           <button
             onClick={onClose}
-            className="ml-auto rounded-xl border border-slate-200 bg-white px-4 py-2 text-sm font-semibold text-slate-700 shadow-2xs hover:bg-slate-50 transition-colors"
+            className="rounded-md border border-slate-300 bg-white px-3.5 py-1.5 text-xs font-medium text-slate-700 hover:bg-slate-50 transition-colors"
           >
             Close
           </button>

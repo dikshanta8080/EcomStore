@@ -45,7 +45,6 @@ const ProductFormContent: React.FC<{
 
   const taxDropdownRef = useRef<HTMLDivElement>(null);
 
-  // Close dropdown on outside click
   useEffect(() => {
     const handleOutsideClick = (e: MouseEvent) => {
       if (taxDropdownRef.current && !taxDropdownRef.current.contains(e.target as Node)) {
@@ -71,11 +70,11 @@ const ProductFormContent: React.FC<{
     e.preventDefault();
 
     if (!name.trim()) {
-      setError('Product name is required (max 150 characters)');
+      setError('Product name is required');
       return;
     }
     if (!sku.trim()) {
-      setError('SKU is required (max 50 characters)');
+      setError('SKU is required');
       return;
     }
     const numPrice = parseFloat(price);
@@ -95,7 +94,6 @@ const ProductFormContent: React.FC<{
     try {
       setError(null);
       if (product) {
-        // Update request
         const updateData: ProductUpdateRequest = {
           name: name.trim(),
           sku: sku.trim(),
@@ -107,7 +105,6 @@ const ProductFormContent: React.FC<{
         };
         await onSubmit(updateData);
       } else {
-        // Create request
         const createData: ProductCreateRequest = {
           name: name.trim(),
           sku: sku.trim(),
@@ -126,16 +123,16 @@ const ProductFormContent: React.FC<{
   };
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-4">
+    <form onSubmit={handleSubmit} className="space-y-3.5">
       {error && (
-        <div className="rounded-xl bg-rose-50 p-3.5 text-xs font-medium text-rose-700 ring-1 ring-rose-200">
+        <div className="rounded-md bg-rose-50 border border-rose-200 p-3 text-xs text-rose-700">
           {error}
         </div>
       )}
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
         <div>
-          <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">
+          <label className="block text-xs font-medium text-slate-700 mb-1">
             Product Name <span className="text-rose-500">*</span>
           </label>
           <input
@@ -145,13 +142,13 @@ const ProductFormContent: React.FC<{
             value={name}
             onChange={(e) => setName(e.target.value)}
             placeholder="e.g. Basmati Rice, Sunflower Oil"
-            className="w-full rounded-xl border border-slate-200 bg-white px-3.5 py-2.5 text-sm text-slate-800 shadow-2xs placeholder:text-slate-400 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20 focus:outline-none transition-all"
+            className="w-full rounded-md border border-slate-300 bg-white px-3 py-1.5 text-xs text-slate-800 placeholder:text-slate-400 focus:border-indigo-600 focus:outline-none"
           />
         </div>
 
         <div>
-          <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">
-            SKU <span className="text-rose-500">*</span>
+          <label className="block text-xs font-medium text-slate-700 mb-1">
+            SKU Code <span className="text-rose-500">*</span>
           </label>
           <input
             type="text"
@@ -160,16 +157,16 @@ const ProductFormContent: React.FC<{
             value={sku}
             onChange={(e) => setSku(e.target.value.toUpperCase())}
             placeholder="e.g. RICE-BASMATI-001"
-            className="w-full rounded-xl border border-slate-200 bg-white px-3.5 py-2.5 text-sm font-mono text-slate-800 shadow-2xs placeholder:text-slate-400 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20 focus:outline-none transition-all"
+            className="w-full rounded-md border border-slate-300 bg-white px-3 py-1.5 text-xs font-mono text-slate-800 placeholder:text-slate-400 focus:border-indigo-600 focus:outline-none"
           />
         </div>
       </div>
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
         {/* Price Input */}
         <div>
-          <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">
-            Price ($) <span className="text-rose-500">*</span>
+          <label className="block text-xs font-medium text-slate-700 mb-1">
+            Unit Price (Rs.) <span className="text-rose-500">*</span>
           </label>
           <input
             type="number"
@@ -179,37 +176,37 @@ const ProductFormContent: React.FC<{
             value={price}
             onChange={(e) => setPrice(e.target.value)}
             placeholder="0.00"
-            className="w-full rounded-xl border border-slate-200 bg-white px-3.5 py-2.5 text-sm text-slate-800 shadow-2xs placeholder:text-slate-400 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20 focus:outline-none transition-all font-mono"
+            className="w-full rounded-md border border-slate-300 bg-white px-3 py-1.5 text-xs font-mono text-slate-800 placeholder:text-slate-400 focus:border-indigo-600 focus:outline-none"
           />
         </div>
 
         {/* Searchable Tax Rate Dropdown */}
         <div className="relative" ref={taxDropdownRef}>
-          <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5 flex items-center justify-between">
+          <label className="block text-xs font-medium text-slate-700 mb-1 flex items-center justify-between">
             <span>Tax Rate</span>
-            <span className="text-[11px] font-normal text-slate-400 lowercase">(optional)</span>
+            <span className="text-[11px] text-slate-400">(optional)</span>
           </label>
 
           <button
             type="button"
             onClick={() => setIsTaxDropdownOpen((prev) => !prev)}
-            className={`w-full flex items-center justify-between rounded-xl border bg-white px-3.5 py-2.5 text-sm shadow-2xs transition-all text-left ${
+            className={`w-full flex items-center justify-between rounded-md border bg-white px-3 py-1.5 text-xs text-left transition-colors ${
               isTaxDropdownOpen
-                ? 'border-indigo-500 ring-2 ring-indigo-500/20'
-                : 'border-slate-200 hover:border-slate-300'
+                ? 'border-indigo-600'
+                : 'border-slate-300 hover:border-slate-400'
             }`}
           >
-            <div className="flex items-center gap-2 truncate">
-              <Percent className={`h-4 w-4 shrink-0 ${selectedTaxRate ? 'text-indigo-600' : 'text-slate-400'}`} />
+            <div className="flex items-center gap-1.5 truncate">
+              <Percent className={`h-3.5 w-3.5 shrink-0 ${selectedTaxRate ? 'text-indigo-600' : 'text-slate-400'}`} />
               {selectedTaxRate ? (
-                <span className="font-semibold text-slate-900 truncate">
+                <span className="font-medium text-slate-900 truncate">
                   {selectedTaxRate.rate}% Tax Rate
                 </span>
               ) : (
                 <span className="text-slate-400">Select Tax Rate...</span>
               )}
             </div>
-            <div className="flex items-center gap-1.5 shrink-0 ml-2">
+            <div className="flex items-center gap-1 shrink-0 ml-1">
               {selectedTaxRate && (
                 <span
                   role="button"
@@ -218,14 +215,14 @@ const ProductFormContent: React.FC<{
                     e.stopPropagation();
                     setTaxRateId('');
                   }}
-                  className="rounded-md p-0.5 text-slate-400 hover:bg-slate-100 hover:text-slate-600 transition-colors"
-                  title="Clear tax rate"
+                  className="rounded p-0.5 text-slate-400 hover:text-slate-700 transition-colors"
+                  title="Clear"
                 >
-                  <X className="h-3.5 w-3.5" />
+                  <X className="h-3 w-3" />
                 </span>
               )}
               <ChevronDown
-                className={`h-4 w-4 text-slate-400 transition-transform duration-200 ${
+                className={`h-3.5 w-3.5 text-slate-400 transition-transform ${
                   isTaxDropdownOpen ? 'rotate-180' : ''
                 }`}
               />
@@ -234,23 +231,20 @@ const ProductFormContent: React.FC<{
 
           {/* Dropdown Popover */}
           {isTaxDropdownOpen && (
-            <div className="absolute left-0 right-0 top-full mt-1.5 z-40 rounded-2xl border border-slate-200 bg-white p-2 shadow-xl">
-              {/* Search bar inside dropdown */}
-              <div className="relative mb-2">
-                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-slate-400" />
+            <div className="absolute left-0 right-0 top-full mt-1 z-40 rounded-md border border-slate-200 bg-white p-2 shadow-lg">
+              <div className="relative mb-1.5">
+                <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 h-3 w-3 text-slate-400" />
                 <input
                   type="text"
                   autoFocus
                   value={taxSearchQuery}
                   onChange={(e) => setTaxSearchQuery(e.target.value)}
-                  placeholder="Search tax rate (e.g. 13, 5)..."
-                  className="w-full rounded-xl border border-slate-200 bg-slate-50/70 pl-8.5 pr-3 py-1.5 text-xs text-slate-800 placeholder:text-slate-400 focus:bg-white focus:border-indigo-500 focus:outline-none transition-all font-mono"
+                  placeholder="Search percentage..."
+                  className="w-full rounded border border-slate-200 bg-slate-50 pl-7 pr-2 py-1 text-xs text-slate-800 focus:bg-white focus:border-indigo-600 focus:outline-none"
                 />
               </div>
 
-              {/* Scrollable List */}
-              <div className="max-h-48 overflow-y-auto space-y-1 pr-0.5">
-                {/* Option: None / Tax Exempt */}
+              <div className="max-h-40 overflow-y-auto space-y-0.5">
                 <button
                   type="button"
                   onClick={() => {
@@ -258,22 +252,19 @@ const ProductFormContent: React.FC<{
                     setIsTaxDropdownOpen(false);
                     setTaxSearchQuery('');
                   }}
-                  className={`w-full flex items-center justify-between rounded-xl px-3 py-2 text-xs font-medium transition-colors ${
+                  className={`w-full flex items-center justify-between rounded px-2.5 py-1.5 text-xs transition-colors ${
                     taxRateId === ''
                       ? 'bg-indigo-50 text-indigo-700 font-semibold'
                       : 'text-slate-600 hover:bg-slate-50'
                   }`}
                 >
-                  <span className="flex items-center gap-2">
-                    <span className="h-2 w-2 rounded-full bg-slate-300" />
-                    None (Tax Exempt / 0%)
-                  </span>
+                  <span>None (Tax Exempt / 0%)</span>
                   {taxRateId === '' && <Check className="h-3.5 w-3.5 text-indigo-600" />}
                 </button>
 
                 {filteredTaxRates.length === 0 ? (
-                  <div className="p-3 text-center text-xs text-slate-400">
-                    No tax rates match "{taxSearchQuery}"
+                  <div className="p-2 text-center text-xs text-slate-400">
+                    No tax rates match
                   </div>
                 ) : (
                   filteredTaxRates.map((tr) => {
@@ -291,19 +282,17 @@ const ProductFormContent: React.FC<{
                           setIsTaxDropdownOpen(false);
                           setTaxSearchQuery('');
                         }}
-                        className={`w-full flex items-center justify-between rounded-xl px-3 py-2 text-xs transition-colors ${
+                        className={`w-full flex items-center justify-between rounded px-2.5 py-1.5 text-xs transition-colors ${
                           isSelected
-                            ? 'bg-indigo-50 text-indigo-700 font-bold'
+                            ? 'bg-indigo-50 text-indigo-700 font-semibold'
                             : 'text-slate-700 hover:bg-slate-50'
                         }`}
                       >
-                        <div className="flex items-center gap-2">
-                          <span className="inline-flex items-center gap-1 rounded-md bg-indigo-100/70 px-1.5 py-0.5 text-[11px] font-mono font-bold text-indigo-700">
-                            {tr.rate}%
-                          </span>
+                        <div className="flex items-center gap-1.5">
+                          <span className="font-mono font-medium">{tr.rate}%</span>
                           {!isNaN(parsedPrice) && parsedPrice > 0 && (
                             <span className="text-[11px] text-slate-400 font-mono">
-                              (+${calculatedTax.toFixed(2)} tax)
+                              (+Rs. {calculatedTax.toFixed(2)})
                             </span>
                           )}
                         </div>
@@ -318,37 +307,34 @@ const ProductFormContent: React.FC<{
         </div>
       </div>
 
-      {/* Live Tax Breakdown Card */}
+      {/* Tax Breakdown Preview */}
       {selectedTaxRate && !isNaN(parsedPrice) && parsedPrice > 0 && (
-        <div className="rounded-xl bg-indigo-50/70 p-3.5 text-xs text-indigo-950 border border-indigo-100/80 flex items-center justify-between">
-          <div className="flex items-center gap-1.5 font-medium">
-            <Percent className="h-3.5 w-3.5 text-indigo-600" />
-            <span>
-              Tax ({selectedTaxRate.rate}%):{' '}
-              <strong className="font-mono text-indigo-700">
-                +${((parsedPrice * Number(selectedTaxRate.rate)) / 100).toFixed(2)}
-              </strong>
-            </span>
-          </div>
-          <span className="font-semibold text-slate-700">
+        <div className="rounded-md bg-slate-50 p-2.5 text-xs text-slate-700 border border-slate-200/80 flex items-center justify-between">
+          <span>
+            Tax ({selectedTaxRate.rate}%):{' '}
+            <strong className="font-mono font-semibold text-slate-900">
+              +Rs. {((parsedPrice * Number(selectedTaxRate.rate)) / 100).toFixed(2)}
+            </strong>
+          </span>
+          <span>
             Total Price:{' '}
-            <strong className="font-mono text-indigo-700 font-bold text-sm">
-              ${(parsedPrice + (parsedPrice * Number(selectedTaxRate.rate)) / 100).toFixed(2)}
+            <strong className="font-mono font-bold text-slate-900">
+              Rs. {(parsedPrice + (parsedPrice * Number(selectedTaxRate.rate)) / 100).toFixed(2)}
             </strong>
           </span>
         </div>
       )}
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
         <div>
-          <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">
+          <label className="block text-xs font-medium text-slate-700 mb-1">
             Category <span className="text-rose-500">*</span>
           </label>
           <select
             required
             value={categoryId}
             onChange={(e) => setCategoryId(Number(e.target.value))}
-            className="w-full rounded-xl border border-slate-200 bg-white px-3.5 py-2.5 text-sm text-slate-800 shadow-2xs focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20 focus:outline-none transition-all"
+            className="w-full rounded-md border border-slate-300 bg-white px-2.5 py-1.5 text-xs text-slate-700 focus:border-indigo-600 focus:outline-none"
           >
             <option value="" disabled>
               Select category
@@ -362,14 +348,14 @@ const ProductFormContent: React.FC<{
         </div>
 
         <div>
-          <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">
+          <label className="block text-xs font-medium text-slate-700 mb-1">
             Base Unit <span className="text-rose-500">*</span>
           </label>
           <select
             required
             value={baseUnitId}
             onChange={(e) => setBaseUnitId(Number(e.target.value))}
-            className="w-full rounded-xl border border-slate-200 bg-white px-3.5 py-2.5 text-sm text-slate-800 shadow-2xs focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20 focus:outline-none transition-all"
+            className="w-full rounded-md border border-slate-300 bg-white px-2.5 py-1.5 text-xs text-slate-700 focus:border-indigo-600 focus:outline-none"
           >
             <option value="" disabled>
               Select base unit
@@ -384,7 +370,7 @@ const ProductFormContent: React.FC<{
       </div>
 
       <div>
-        <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">
+        <label className="block text-xs font-medium text-slate-700 mb-1">
           Description
         </label>
         <textarea
@@ -392,27 +378,27 @@ const ProductFormContent: React.FC<{
           maxLength={1000}
           value={description}
           onChange={(e) => setDescription(e.target.value)}
-          placeholder="Detailed description of the product..."
-          className="w-full rounded-xl border border-slate-200 bg-white px-3.5 py-2.5 text-sm text-slate-800 shadow-2xs placeholder:text-slate-400 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20 focus:outline-none transition-all"
+          placeholder="Product specifications, notes, packaging details..."
+          className="w-full rounded-md border border-slate-300 bg-white px-3 py-1.5 text-xs text-slate-800 placeholder:text-slate-400 focus:border-indigo-600 focus:outline-none"
         />
       </div>
 
-      <div className="flex items-center justify-end gap-3 border-t border-slate-100 pt-4 mt-6">
+      <div className="flex items-center justify-end gap-2.5 border-t border-slate-100 pt-3.5 mt-5">
         <button
           type="button"
           onClick={onClose}
           disabled={isLoading}
-          className="rounded-xl border border-slate-200 bg-white px-4 py-2.5 text-sm font-semibold text-slate-700 shadow-2xs hover:bg-slate-50 transition-colors disabled:opacity-50"
+          className="rounded-md border border-slate-300 bg-white px-3.5 py-1.5 text-xs font-medium text-slate-700 hover:bg-slate-50 transition-colors disabled:opacity-50"
         >
           Cancel
         </button>
         <button
           type="submit"
           disabled={isLoading}
-          className="inline-flex items-center gap-2 rounded-xl bg-indigo-600 px-5 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-indigo-700 transition-all active:scale-[0.98] disabled:opacity-50"
+          className="inline-flex items-center gap-1.5 rounded-md bg-indigo-600 px-3.5 py-1.5 text-xs font-semibold text-white hover:bg-indigo-700 transition-colors disabled:opacity-50"
         >
           {isLoading && (
-            <div className="h-4 w-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+            <div className="h-3.5 w-3.5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
           )}
           {product ? 'Save Changes' : 'Create Product'}
         </button>
@@ -435,11 +421,11 @@ export const ProductFormModal: React.FC<ProductFormModalProps> = ({
     <Modal
       isOpen={isOpen}
       onClose={onClose}
-      title={product ? 'Edit Product' : 'Create New Product'}
+      title={product ? 'Edit Product' : 'New Product'}
       subtitle={
         product
           ? `Updating product #${product.id} (${product.sku})`
-          : 'Enter product details to add to catalog'
+          : 'Add a new product to catalog'
       }
       maxWidth="lg"
     >
