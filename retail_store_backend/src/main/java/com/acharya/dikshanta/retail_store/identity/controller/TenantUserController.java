@@ -6,6 +6,7 @@ import com.acharya.dikshanta.retail_store.identity.dto.UserResponse;
 import com.acharya.dikshanta.retail_store.identity.model.User;
 import com.acharya.dikshanta.retail_store.identity.repository.UserRepository;
 import com.acharya.dikshanta.retail_store.identity.service.TenantUserService;
+import com.acharya.dikshanta.retail_store.tenant.repository.TenantRepository;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -24,13 +25,19 @@ public class TenantUserController {
 
     private final TenantUserService tenantUserService;
     private final UserRepository userRepository;
+    private final TenantRepository tenantRepository;
 
-    public TenantUserController(TenantUserService tenantUserService, UserRepository userRepository) {
+    public TenantUserController(
+            TenantUserService tenantUserService,
+            UserRepository userRepository,
+            TenantRepository tenantRepository
+    ) {
         this.tenantUserService = tenantUserService;
         this.userRepository = userRepository;
+        this.tenantRepository = tenantRepository;
     }
 
-    private Long resolveTenantId(UserDetails userDetails, Long optionalHeaderTenantId) {
+    private Long resolveTenantId(UserDetails userDetails, Long optionalHeaderTenantId, String tenantSlugHeader) {
         User user = userRepository.findByEmail(userDetails.getUsername())
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.UNAUTHORIZED, "User not found"));
 
@@ -38,9 +45,17 @@ public class TenantUserController {
             return user.getTenantId();
         }
 
-        // If SUPER_ADMIN is operating on a tenant, they can provide tenantId
+        // If SUPER_ADMIN is operating on a tenant, they can provide tenantId query param
         if (optionalHeaderTenantId != null) {
             return optionalHeaderTenantId;
+        }
+
+        // Or SUPER_ADMIN provides X-Tenant-ID header (slug)
+        if (tenantSlugHeader != null && !tenantSlugHeader.isBlank() && !"public".equalsIgnoreCase(tenantSlugHeader)) {
+            var tenantOpt = tenantRepository.findByTenantSlug(tenantSlugHeader.trim());
+            if (tenantOpt.isPresent()) {
+                return tenantOpt.get().getId();
+            }
         }
 
         throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "No tenant context found for user");
@@ -49,9 +64,10 @@ public class TenantUserController {
     @GetMapping
     public ResponseEntity<List<UserResponse>> getTenantUsers(
             @AuthenticationPrincipal UserDetails userDetails,
-            @RequestParam(value = "tenantId", required = false) Long queryTenantId
+            @RequestParam(value = "tenantId", required = false) Long queryTenantId,
+            @RequestHeader(value = "X-Tenant-ID", required = false) String tenantSlugHeader
     ) {
-        Long tenantId = resolveTenantId(userDetails, queryTenantId);
+        Long tenantId = resolveTenantId(userDetails, queryTenantId, tenantSlugHeader);
         return ResponseEntity.ok(tenantUserService.getTenantUsers(tenantId));
     }
 
@@ -59,9 +75,10 @@ public class TenantUserController {
     public ResponseEntity<UserResponse> createTenantUser(
             @AuthenticationPrincipal UserDetails userDetails,
             @RequestParam(value = "tenantId", required = false) Long queryTenantId,
+            @RequestHeader(value = "X-Tenant-ID", required = false) String tenantSlugHeader,
             @Valid @RequestBody CreateUserRequest request
     ) {
-        Long tenantId = resolveTenantId(userDetails, queryTenantId);
+        Long tenantId = resolveTenantId(userDetails, queryTenantId, tenantSlugHeader);
         UserResponse response = tenantUserService.createTenantUser(request, tenantId);
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
@@ -71,9 +88,10 @@ public class TenantUserController {
             @PathVariable Long id,
             @AuthenticationPrincipal UserDetails userDetails,
             @RequestParam(value = "tenantId", required = false) Long queryTenantId,
+            @RequestHeader(value = "X-Tenant-ID", required = false) String tenantSlugHeader,
             @Valid @RequestBody UpdateUserStatusRequest request
     ) {
-        Long tenantId = resolveTenantId(userDetails, queryTenantId);
+        Long tenantId = resolveTenantId(userDetails, queryTenantId, tenantSlugHeader);
         return ResponseEntity.ok(tenantUserService.updateUserStatus(id, tenantId, request.userStatus()));
     }
 }

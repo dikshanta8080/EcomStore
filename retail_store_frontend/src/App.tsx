@@ -15,6 +15,15 @@ import { TaxRateFormModal } from './pages/TaxRates/TaxRateFormModal';
 import { CreateMovementModal } from './pages/InventoryMovements/CreateMovementModal';
 import { PosPage } from './pages/POS/PosPage';
 
+// Multi-Tenant Role Dashboards & Authentication
+import { SuperAdminDashboard } from './pages/SuperAdmin/SuperAdminDashboard';
+import { TenantAdminDashboard } from './pages/TenantAdmin/TenantAdminDashboard';
+import { InventoryManagerDashboard } from './pages/Inventory/InventoryManagerDashboard';
+import { AccountantDashboard } from './pages/Accounting/AccountantDashboard';
+import { CashierDashboard } from './pages/POS/CashierDashboard';
+import { LoginPage } from './pages/Auth/LoginPage';
+import { AuthProvider, useAuth } from './context/AuthContext';
+
 import { productService } from './api/productService';
 import { categoryService } from './api/categoryService';
 import { unitService } from './api/unitService';
@@ -28,10 +37,37 @@ import type { Unit, UnitRequest } from './types/unit';
 import type { TaxRate, TaxRateRequest } from './types/taxRate';
 import type { InventoryMovement, InventoryMovementRequest, InventoryMovementFilterParams } from './types/inventory';
 import type { PagedResponse } from './types/api';
+import { Loader2 } from 'lucide-react';
 
-export function App() {
+function AppContent() {
+  const { user, isAuthenticated, isLoading: isAuthLoading, setActiveTenantSlug } = useAuth();
+
+  const getDefaultTabForRole = useCallback((): NavTab => {
+    switch (user?.role) {
+      case 'SUPER_ADMIN':
+        return 'superadmin-tenants';
+      case 'TENANT_ADMIN':
+        return 'tenant-admin';
+      case 'INVENTORY_MANAGER':
+        return 'inventory-manager';
+      case 'ACCOUNTANT':
+        return 'accountant-dashboard';
+      case 'CASHIER':
+        return 'cashier-dashboard';
+      default:
+        return 'dashboard';
+    }
+  }, [user?.role]);
+
   const [currentTab, setCurrentTab] = useState<NavTab>('dashboard');
   const [toasts, setToasts] = useState<ToastMessage[]>([]);
+
+  // Set default tab on user login
+  useEffect(() => {
+    if (user) {
+      setCurrentTab(getDefaultTabForRole());
+    }
+  }, [user, getDefaultTabForRole]);
 
   // Data states
   const [categories, setCategories] = useState<Category[]>([]);
@@ -49,7 +85,6 @@ export function App() {
     direction: 'asc',
   });
 
-  // Backend Aggregate Summary metrics
   const [productSummary, setProductSummary] = useState<ProductSummary | null>(null);
 
   const [movementFilterParams, setMovementFilterParams] = useState<InventoryMovementFilterParams>({
@@ -90,129 +125,143 @@ export function App() {
     try {
       const data = await categoryService.getAllCategories();
       setCategories(data);
-    } catch (err) {
-      addToast('error', getErrorMessage(err));
+    } catch {
+      // Ignored
     }
-  }, [addToast]);
+  }, []);
 
   // Fetch all units
   const fetchUnits = useCallback(async () => {
     try {
       const data = await unitService.getAllUnits();
       setUnits(data);
-    } catch (err) {
-      addToast('error', getErrorMessage(err));
+    } catch {
+      // Ignored
     }
-  }, [addToast]);
+  }, []);
 
   // Fetch all tax rates
   const fetchTaxRates = useCallback(async () => {
     try {
       const data = await taxRateService.getAllTaxRates();
       setTaxRates(data);
-    } catch (err) {
-      addToast('error', getErrorMessage(err));
+    } catch {
+      // Ignored
     }
-  }, [addToast]);
+  }, []);
 
-  // Fetch paginated products for Products tab
-  const fetchPagedProducts = useCallback(async (params: ProductQueryParams) => {
-    setIsProductsLoading(true);
-    try {
-      const res = await productService.getAllProducts(params);
-      setPagedProducts(res);
-    } catch (err) {
-      addToast('error', getErrorMessage(err));
-    } finally {
-      setIsProductsLoading(false);
-    }
-  }, [addToast]);
-
-  // Fetch full products list for Dashboard, Inventory, & select dropdowns
+  // Fetch all products
   const fetchAllProducts = useCallback(async () => {
     try {
-      const res = await productService.getAllProducts({ page: 0, size: 1000, sort: 'id', direction: 'asc' });
-      setAllProducts(res.content);
-    } catch (err) {
-      addToast('error', getErrorMessage(err));
+      const data = await productService.getAllProducts({ size: 1000 });
+      setAllProducts(data.content || []);
+    } catch {
+      // Ignored
     }
-  }, [addToast]);
+  }, []);
 
-  // Fetch backend aggregate product summary metrics
+  // Fetch paged products
+  const fetchPagedProducts = useCallback(
+    async (params?: ProductQueryParams) => {
+      setIsProductsLoading(true);
+      try {
+        const query = params || productQueryParams;
+        const data = await productService.getAllProducts(query);
+        setPagedProducts(data);
+      } catch (err) {
+        addToast('error', getErrorMessage(err));
+      } finally {
+        setIsProductsLoading(false);
+      }
+    },
+    [productQueryParams, addToast]
+  );
+
+  // Fetch product summary
   const fetchProductSummary = useCallback(async () => {
     try {
       const summary = await productService.getProductSummary();
       setProductSummary(summary);
-    } catch (err) {
-      console.error('Failed to fetch product summary:', err);
+    } catch {
+      // Ignored
     }
   }, []);
 
-  // Fetch paginated movements
-  const fetchPagedMovements = useCallback(async (params: InventoryMovementFilterParams) => {
-    setIsMovementsLoading(true);
-    try {
-      const res = await inventoryService.getAllMovements(params);
-      setPagedMovements(res);
-    } catch (err) {
-      addToast('error', getErrorMessage(err));
-    } finally {
-      setIsMovementsLoading(false);
-    }
-  }, [addToast]);
+  // Fetch paged movements
+  const fetchPagedMovements = useCallback(
+    async (params?: InventoryMovementFilterParams) => {
+      setIsMovementsLoading(true);
+      try {
+        const query = params || movementFilterParams;
+        const data = await inventoryService.getAllMovements(query);
+        setPagedMovements(data);
+      } catch (err) {
+        addToast('error', getErrorMessage(err));
+      } finally {
+        setIsMovementsLoading(false);
+      }
+    },
+    [movementFilterParams, addToast]
+  );
 
   // Initial load
   useEffect(() => {
-    let isMounted = true;
-    async function loadAll() {
-      setIsInitialLoading(true);
-      await Promise.all([
-        fetchCategories(),
-        fetchUnits(),
-        fetchTaxRates(),
-        fetchAllProducts(),
-        fetchPagedProducts(productQueryParams),
-        fetchPagedMovements(movementFilterParams),
-        fetchProductSummary(),
-      ]);
-      if (isMounted) {
+    if (isAuthenticated && user?.role !== 'SUPER_ADMIN') {
+      const initLoad = async () => {
+        setIsInitialLoading(true);
+        await Promise.allSettled([
+          fetchCategories(),
+          fetchUnits(),
+          fetchTaxRates(),
+          fetchAllProducts(),
+          fetchPagedProducts(productQueryParams),
+          fetchProductSummary(),
+          fetchPagedMovements(movementFilterParams),
+        ]);
         setIsInitialLoading(false);
-      }
+      };
+      initLoad();
     }
-    loadAll();
-    return () => {
-      isMounted = false;
-    };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [
+    isAuthenticated,
+    user?.role,
+    fetchCategories,
+    fetchUnits,
+    fetchTaxRates,
+    fetchAllProducts,
+    fetchPagedProducts,
+    fetchProductSummary,
+    fetchPagedMovements,
+  ]);
 
-  // Refresh current active view
+  // Global manual refresh
   const handleRefresh = async () => {
     setIsRefreshing(true);
-    try {
-      await Promise.all([
+    if (user?.role !== 'SUPER_ADMIN') {
+      await Promise.allSettled([
         fetchCategories(),
         fetchUnits(),
         fetchTaxRates(),
         fetchAllProducts(),
         fetchPagedProducts(productQueryParams),
-        fetchPagedMovements(movementFilterParams),
         fetchProductSummary(),
+        fetchPagedMovements(movementFilterParams),
       ]);
-      addToast('info', 'Store data refreshed successfully');
-    } catch (err) {
-      addToast('error', getErrorMessage(err));
-    } finally {
-      setIsRefreshing(false);
     }
+    setIsRefreshing(false);
+    addToast('info', 'Data refreshed from server');
   };
 
   // Product Actions
   const handleCreateProduct = async (data: ProductCreateRequest) => {
     try {
       const created = await productService.createProduct(data);
-      addToast('success', `Product "${created.name}" created successfully with base unit ${created.baseUnitSymbol || ''}.`);
-      await Promise.all([fetchAllProducts(), fetchPagedProducts(productQueryParams), fetchProductSummary()]);
+      addToast('success', `Product "${created.name}" created successfully.`);
+      await Promise.all([
+        fetchAllProducts(),
+        fetchPagedProducts(productQueryParams),
+        fetchProductSummary(),
+      ]);
     } catch (err) {
       const msg = getErrorMessage(err);
       addToast('error', msg);
@@ -224,7 +273,11 @@ export function App() {
     try {
       const updated = await productService.updateProduct(id, data);
       addToast('success', `Product "${updated.name}" updated successfully.`);
-      await Promise.all([fetchAllProducts(), fetchPagedProducts(productQueryParams), fetchProductSummary()]);
+      await Promise.all([
+        fetchAllProducts(),
+        fetchPagedProducts(productQueryParams),
+        fetchProductSummary(),
+      ]);
     } catch (err) {
       const msg = getErrorMessage(err);
       addToast('error', msg);
@@ -235,8 +288,12 @@ export function App() {
   const handleDeleteProduct = async (id: number) => {
     try {
       const deleted = await productService.deleteProduct(id);
-      addToast('success', `Product "${deleted.name}" archived successfully. Inventory movements & transactions preserved.`);
-      await Promise.all([fetchAllProducts(), fetchPagedProducts(productQueryParams), fetchProductSummary()]);
+      addToast('success', `Product "${deleted.name}" soft deleted.`);
+      await Promise.all([
+        fetchAllProducts(),
+        fetchPagedProducts(productQueryParams),
+        fetchProductSummary(),
+      ]);
     } catch (err) {
       const msg = getErrorMessage(err);
       addToast('error', msg);
@@ -247,8 +304,12 @@ export function App() {
   const handleRestoreProduct = async (id: number) => {
     try {
       const restored = await productService.restoreProduct(id);
-      addToast('success', `Product "${restored.name}" restored to active catalog successfully.`);
-      await Promise.all([fetchAllProducts(), fetchPagedProducts(productQueryParams), fetchProductSummary()]);
+      addToast('success', `Product "${restored.name}" restored successfully.`);
+      await Promise.all([
+        fetchAllProducts(),
+        fetchPagedProducts(productQueryParams),
+        fetchProductSummary(),
+      ]);
     } catch (err) {
       const msg = getErrorMessage(err);
       addToast('error', msg);
@@ -267,10 +328,12 @@ export function App() {
         fetchAllProducts(),
         fetchPagedProducts(productQueryParams),
         fetchProductSummary(),
+        fetchPagedMovements(movementFilterParams),
       ]);
     } catch (err) {
       const msg = getErrorMessage(err);
       addToast('error', msg);
+      throw err;
     }
   };
 
@@ -291,7 +354,7 @@ export function App() {
     try {
       const updated = await categoryService.updateCategory(id, data);
       addToast('success', `Category "${updated.name}" updated successfully.`);
-      await Promise.all([fetchCategories(), fetchAllProducts(), fetchPagedProducts(productQueryParams)]);
+      await fetchCategories();
     } catch (err) {
       const msg = getErrorMessage(err);
       addToast('error', msg);
@@ -303,7 +366,7 @@ export function App() {
     try {
       const msg = await categoryService.deleteCategory(id);
       addToast('success', msg);
-      await Promise.all([fetchCategories(), fetchAllProducts(), fetchPagedProducts(productQueryParams)]);
+      await fetchCategories();
     } catch (err) {
       const msg = getErrorMessage(err);
       addToast('error', msg);
@@ -315,7 +378,7 @@ export function App() {
   const handleCreateUnit = async (data: UnitRequest) => {
     try {
       const created = await unitService.createUnit(data);
-      addToast('success', `Unit "${created.name} (${created.symbol})" created successfully.`);
+      addToast('success', `Unit "${created.name} (${created.symbol})" created.`);
       await fetchUnits();
     } catch (err) {
       const msg = getErrorMessage(err);
@@ -392,9 +455,8 @@ export function App() {
       const actionName = created.movementType === 'IN' ? 'Received' : 'Dispatched';
       addToast(
         'success',
-        `${actionName} ${created.quantity} ${created.unitSymbol} (${created.baseQuantity} ${created.baseUnitSymbol}) for "${created.productName}". Total: Rs. ${Number(created.totalAmount).toFixed(2)}`
+        `${actionName} ${created.quantity} ${created.unitSymbol} (${created.baseQuantity} ${created.baseUnitSymbol}) for "${created.productName}". Total: $${Number(created.totalAmount).toFixed(2)}`
       );
-      // Refresh inventory and movements
       await Promise.all([
         fetchAllProducts(),
         fetchPagedProducts(productQueryParams),
@@ -424,7 +486,6 @@ export function App() {
     }
   };
 
-  // Shortcut to open Movement Modal for specific product
   const handleOpenMovementForProduct = (product: Product) => {
     setTargetProductForMovement(product);
     setIsQuickMovementModalOpen(true);
@@ -434,133 +495,213 @@ export function App() {
     ? productSummary.lowStockCount
     : allProducts.filter((p) => (p.stock ?? 0) > 0 && (p.stock ?? 0) <= 10).length;
 
+  if (isAuthLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-slate-900 text-white">
+        <div className="flex flex-col items-center gap-3">
+          <Loader2 className="w-8 h-8 animate-spin text-indigo-500" />
+          <span className="text-sm font-medium text-slate-300">Connecting to SaaS Cloud...</span>
+        </div>
+      </div>
+    );
+  }
+
+  if (!isAuthenticated) {
+    return <LoginPage />;
+  }
+
+  const renderContent = () => {
+    switch (currentTab) {
+      case 'superadmin-tenants':
+        return (
+          <SuperAdminDashboard
+            onInspectTenant={(tenant) => {
+              setActiveTenantSlug(tenant.tenantSlug);
+              setCurrentTab('products');
+              handleRefresh();
+            }}
+            onShowToast={addToast}
+          />
+        );
+
+      case 'tenant-admin':
+        return (
+          <TenantAdminDashboard
+            onNavigate={setCurrentTab}
+            onShowToast={addToast}
+            productCount={productSummary?.totalProducts ?? allProducts.length}
+            lowStockCount={lowStockCount}
+          />
+        );
+
+      case 'inventory-manager':
+        return (
+          <InventoryManagerDashboard
+            productSummary={productSummary}
+            pagedProducts={pagedProducts}
+            pagedMovements={pagedMovements}
+            onOpenQuickProduct={() => setIsQuickProductModalOpen(true)}
+            onOpenQuickMovement={() => setIsQuickMovementModalOpen(true)}
+            onNavigate={setCurrentTab}
+          />
+        );
+
+      case 'accountant-dashboard':
+        return (
+          <AccountantDashboard
+            onNavigate={setCurrentTab}
+            onShowToast={addToast}
+          />
+        );
+
+      case 'cashier-dashboard':
+        return (
+          <CashierDashboard
+            products={allProducts}
+            categories={categories}
+            onRefreshData={handleRefresh}
+            addToast={addToast}
+          />
+        );
+
+      case 'pos':
+        return (
+          <PosPage
+            products={allProducts}
+            categories={categories}
+            onRefreshData={handleRefresh}
+            addToast={addToast}
+          />
+        );
+
+      case 'products':
+        return (
+          <ProductsPage
+            pagedProducts={pagedProducts}
+            categories={categories}
+            units={units}
+            taxRates={taxRates}
+            summary={productSummary}
+            isLoading={isProductsLoading}
+            queryParams={productQueryParams}
+            onQueryParamsChange={(params) => {
+              setProductQueryParams(params);
+              fetchPagedProducts(params);
+            }}
+            onCreateProduct={handleCreateProduct}
+            onUpdateProduct={handleUpdateProduct}
+            onDeleteProduct={handleDeleteProduct}
+            onRestoreProduct={handleRestoreProduct}
+            onOpenMovementModalForProduct={handleOpenMovementForProduct}
+            onRefreshProducts={async () => {
+              await Promise.all([fetchAllProducts(), fetchPagedProducts(productQueryParams), fetchProductSummary()]);
+            }}
+            onSeedData={handleSeedData}
+          />
+        );
+
+      case 'categories':
+        return (
+          <CategoriesPage
+            categories={categories}
+            isLoading={isInitialLoading}
+            onRefresh={fetchCategories}
+            onCreateCategory={handleCreateCategory}
+            onUpdateCategory={handleUpdateCategory}
+            onDeleteCategory={handleDeleteCategory}
+          />
+        );
+
+      case 'units':
+        return (
+          <UnitsPage
+            units={units}
+            isLoading={isInitialLoading}
+            onRefresh={fetchUnits}
+            onCreateUnit={handleCreateUnit}
+            onUpdateUnit={handleUpdateUnit}
+            onDeleteUnit={handleDeleteUnit}
+          />
+        );
+
+      case 'tax-rates':
+        return (
+          <TaxRatesPage
+            taxRates={taxRates}
+            isLoading={isInitialLoading}
+            onRefresh={fetchTaxRates}
+            onCreateTaxRate={handleCreateTaxRate}
+            onUpdateTaxRate={handleUpdateTaxRate}
+            onDeleteTaxRate={handleDeleteTaxRate}
+          />
+        );
+
+      case 'inventory':
+        return (
+          <InventoryPage
+            products={allProducts}
+            summary={productSummary}
+            isLoading={isInitialLoading}
+            onOpenMovementModalForProduct={handleOpenMovementForProduct}
+          />
+        );
+
+      case 'movements':
+        return (
+          <MovementsPage
+            pagedMovements={pagedMovements}
+            products={allProducts}
+            units={units}
+            isLoading={isMovementsLoading}
+            filterParams={movementFilterParams}
+            onFilterChange={(params) => {
+              setMovementFilterParams(params);
+              fetchPagedMovements(params);
+            }}
+            onCreateMovement={handleCreateMovement}
+            onDeleteMovement={handleDeleteMovement}
+          />
+        );
+
+      case 'dashboard':
+      default:
+        return (
+          <DashboardPage
+            products={allProducts}
+            categories={categories}
+            recentMovements={pagedMovements?.content || []}
+            taxRates={taxRates}
+            summary={productSummary}
+            isLoading={isInitialLoading}
+            onNavigate={setCurrentTab}
+            onOpenCreateProduct={() => setIsQuickProductModalOpen(true)}
+            onOpenCreateCategory={() => setIsQuickCategoryModalOpen(true)}
+            onOpenCreateMovement={() => {
+              setTargetProductForMovement(null);
+              setIsQuickMovementModalOpen(true);
+            }}
+            onOpenMovementForProduct={handleOpenMovementForProduct}
+            onCreateTaxRate={handleCreateTaxRate}
+            onUpdateTaxRate={handleUpdateTaxRate}
+            onDeleteTaxRate={handleDeleteTaxRate}
+          />
+        );
+    }
+  };
+
   return (
-    <Layout
-      currentTab={currentTab}
-      onTabChange={setCurrentTab}
-      onRefresh={handleRefresh}
-      isRefreshing={isRefreshing}
-      lowStockCount={lowStockCount}
-    >
-      {/* Toast alert system */}
-      <ToastContainer toasts={toasts} onDismiss={dismissToast} />
+    <>
+      <Layout
+        currentTab={currentTab}
+        onTabChange={setCurrentTab}
+        onRefresh={handleRefresh}
+        isRefreshing={isRefreshing}
+        lowStockCount={lowStockCount}
+      >
+        {renderContent()}
+      </Layout>
 
-      {/* Page Routing */}
-      {currentTab === 'dashboard' && (
-        <DashboardPage
-          products={allProducts}
-          categories={categories}
-          recentMovements={pagedMovements?.content || []}
-          taxRates={taxRates}
-          summary={productSummary}
-          isLoading={isInitialLoading}
-          onNavigate={setCurrentTab}
-          onOpenCreateProduct={() => setIsQuickProductModalOpen(true)}
-          onOpenCreateCategory={() => setIsQuickCategoryModalOpen(true)}
-          onOpenCreateMovement={() => {
-            setTargetProductForMovement(null);
-            setIsQuickMovementModalOpen(true);
-          }}
-          onOpenMovementForProduct={handleOpenMovementForProduct}
-          onCreateTaxRate={handleCreateTaxRate}
-          onUpdateTaxRate={handleUpdateTaxRate}
-          onDeleteTaxRate={handleDeleteTaxRate}
-        />
-      )}
-
-      {currentTab === 'pos' && (
-        <PosPage
-          products={allProducts}
-          categories={categories}
-          onRefreshData={handleRefresh}
-          addToast={addToast}
-        />
-      )}
-
-      {currentTab === 'products' && (
-        <ProductsPage
-          pagedProducts={pagedProducts}
-          categories={categories}
-          units={units}
-          taxRates={taxRates}
-          summary={productSummary}
-          isLoading={isProductsLoading}
-          queryParams={productQueryParams}
-          onQueryParamsChange={(params) => {
-            setProductQueryParams(params);
-            fetchPagedProducts(params);
-          }}
-          onCreateProduct={handleCreateProduct}
-          onUpdateProduct={handleUpdateProduct}
-          onDeleteProduct={handleDeleteProduct}
-          onRestoreProduct={handleRestoreProduct}
-          onOpenMovementModalForProduct={handleOpenMovementForProduct}
-          onRefreshProducts={async () => {
-            await Promise.all([fetchAllProducts(), fetchPagedProducts(productQueryParams), fetchProductSummary()]);
-          }}
-          onSeedData={handleSeedData}
-        />
-      )}
-
-      {currentTab === 'categories' && (
-        <CategoriesPage
-          categories={categories}
-          isLoading={isInitialLoading}
-          onRefresh={fetchCategories}
-          onCreateCategory={handleCreateCategory}
-          onUpdateCategory={handleUpdateCategory}
-          onDeleteCategory={handleDeleteCategory}
-        />
-      )}
-
-      {currentTab === 'units' && (
-        <UnitsPage
-          units={units}
-          isLoading={isInitialLoading}
-          onRefresh={fetchUnits}
-          onCreateUnit={handleCreateUnit}
-          onUpdateUnit={handleUpdateUnit}
-          onDeleteUnit={handleDeleteUnit}
-        />
-      )}
-
-      {currentTab === 'tax-rates' && (
-        <TaxRatesPage
-          taxRates={taxRates}
-          isLoading={isInitialLoading}
-          onRefresh={fetchTaxRates}
-          onCreateTaxRate={handleCreateTaxRate}
-          onUpdateTaxRate={handleUpdateTaxRate}
-          onDeleteTaxRate={handleDeleteTaxRate}
-        />
-      )}
-
-      {currentTab === 'inventory' && (
-        <InventoryPage
-          products={allProducts}
-          summary={productSummary}
-          isLoading={isInitialLoading}
-          onOpenMovementModalForProduct={handleOpenMovementForProduct}
-        />
-      )}
-
-      {currentTab === 'movements' && (
-        <MovementsPage
-          pagedMovements={pagedMovements}
-          products={allProducts}
-          units={units}
-          isLoading={isMovementsLoading}
-          filterParams={movementFilterParams}
-          onFilterChange={(params) => {
-            setMovementFilterParams(params);
-            fetchPagedMovements(params);
-          }}
-          onCreateMovement={handleCreateMovement}
-          onDeleteMovement={handleDeleteMovement}
-        />
-      )}
-
-      {/* Global Action Modals */}
+      {/* Global Quick Action Modals */}
       <ProductFormModal
         isOpen={isQuickProductModalOpen}
         onClose={() => setIsQuickProductModalOpen(false)}
@@ -599,7 +740,17 @@ export function App() {
         units={units}
         selectedProduct={targetProductForMovement}
       />
-    </Layout>
+
+      <ToastContainer toasts={toasts} onDismiss={dismissToast} />
+    </>
+  );
+}
+
+export function App() {
+  return (
+    <AuthProvider>
+      <AppContent />
+    </AuthProvider>
   );
 }
 

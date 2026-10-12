@@ -11,12 +11,43 @@ export const apiClient = axios.create({
   timeout: 15000,
 });
 
+// Attach JWT token & Tenant header to all outgoing requests
+apiClient.interceptors.request.use((config) => {
+  const token = localStorage.getItem('saas_token');
+  if (token) {
+    config.headers.Authorization = `Bearer ${token}`;
+  }
+
+  const tenantSlug = localStorage.getItem('saas_tenant_slug');
+  if (tenantSlug) {
+    config.headers['X-Tenant-ID'] = tenantSlug;
+  }
+
+  return config;
+});
+
+// Handle 401 Unauthorized globally
+apiClient.interceptors.response.use(
+  (response) => response,
+  (error) => {
+    if (error.response?.status === 401) {
+      localStorage.removeItem('saas_token');
+      localStorage.removeItem('saas_user');
+      localStorage.removeItem('saas_tenant_slug');
+    }
+    return Promise.reject(error);
+  }
+);
+
 export function getErrorMessage(error: unknown): string {
   if (axios.isAxiosError(error)) {
-    const axiosErr = error as AxiosError<ApiResponse<Record<string, string> | string | null>>;
-    const responseData = axiosErr.response?.data;
+    const axiosErr = error as AxiosError<ApiResponse<Record<string, string> | string | null> | { error?: string; message?: string }>;
+    const responseData = axiosErr.response?.data as any;
 
     if (responseData) {
+      if (responseData.error) {
+        return responseData.error;
+      }
       // Check if data contains validation errors map { fieldName: "error" }
       if (responseData.data && typeof responseData.data === 'object') {
         const fieldErrors = Object.entries(responseData.data)

@@ -59,9 +59,8 @@ public class SuperAdminDataInitializer implements CommandLineRunner {
     }
 
     private void seedDemoTenantAndUsers() {
-        // Only seed demo tenant if no tenants exist at all
-        if (tenantRepository.count() == 0) {
-            String demoSlug = "apex";
+        String demoSlug = "apex";
+        if (tenantRepository.findByTenantSlug(demoSlug).isEmpty()) {
             log.info("Provisioning initial demo tenant: Apex Supermarket ({})", demoSlug);
             var tenantResponse = tenantService.createTenant(new CreateTenantRequest(
                     "Apex Supermarket",
@@ -82,10 +81,14 @@ public class SuperAdminDataInitializer implements CommandLineRunner {
             seedEmployeeIfNotExists("Emma Watson", "cashier@apex.com", "Cashier@123", "+1 (555) 567-8901", Role.CASHIER, tenantId);
 
             log.info("Demo tenant and role users seeded successfully!");
-            log.info("  - Tenant Admin: tenantadmin@apex.com / TenantAdmin@123");
-            log.info("  - Inventory Mgr: inventory@apex.com / Inventory@123");
-            log.info("  - Accountant: accountant@apex.com / Accountant@123");
-            log.info("  - Cashier: cashier@apex.com / Cashier@123");
+        } else {
+            tenantRepository.findByTenantSlug(demoSlug).ifPresent(tenant -> {
+                Long tenantId = tenant.getId();
+                seedEmployeeIfNotExists("Sarah Jenkins", "tenantadmin@apex.com", "TenantAdmin@123", "+1 (555) 234-5678", Role.TENANT_ADMIN, tenantId);
+                seedEmployeeIfNotExists("Alex Morgan", "inventory@apex.com", "Inventory@123", "+1 (555) 345-6789", Role.INVENTORY_MANAGER, tenantId);
+                seedEmployeeIfNotExists("David Chen", "accountant@apex.com", "Accountant@123", "+1 (555) 456-7890", Role.ACCOUNTANT, tenantId);
+                seedEmployeeIfNotExists("Emma Watson", "cashier@apex.com", "Cashier@123", "+1 (555) 567-8901", Role.CASHIER, tenantId);
+            });
         }
     }
 
