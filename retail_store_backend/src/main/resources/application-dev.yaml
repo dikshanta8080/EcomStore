@@ -1,7 +1,7 @@
 spring:
   datasource:
     driver-class-name: org.postgresql.Driver
-    url: ${DATABASE_URL:jdbc:postgresql://localhost:5432/retail_store_db}
+    url: ${DATABASE_URL:jdbc:postgresql://localhost:5432/ecomstore_db}
     username: ${DATABASE_USERNAME:postgres}
     password: ${DATABASE_PASSWORD:root}
   jpa:

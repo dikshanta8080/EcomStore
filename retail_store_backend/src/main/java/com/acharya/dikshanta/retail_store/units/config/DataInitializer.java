@@ -35,9 +35,8 @@ public class DataInitializer implements CommandLineRunner {
     private final InventoryRepository inventoryRepository;
 
     @Override
-    @Transactional
     public void run(String... args) {
-        seedAllData();
+        // Auto-seeding disabled to maintain clean database
     }
 
     @Transactional
